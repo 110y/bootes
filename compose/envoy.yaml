@@ -1,0 +1,35 @@
+---
+node:
+  id: id
+  cluster: cluster
+
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 15000
+
+dynamic_resources:
+  ads_config:
+    api_type: GRPC
+    grpc_services:
+      - envoy_grpc:
+          cluster_name: bootes
+    set_node_on_first_message_only: true
+
+static_resources:
+  clusters:
+    - name: bootes
+      connect_timeout: 1s
+      type: LOGICAL_DNS
+      http2_protocol_options: {}
+      load_assignment:
+        cluster_name: bootes
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: bootes
+                      port_value: 8080
