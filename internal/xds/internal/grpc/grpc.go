@@ -3,21 +3,29 @@ package grpc
 import (
 	"context"
 
+	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/cache"
 	xds "github.com/envoyproxy/go-control-plane/pkg/server"
 	"google.golang.org/grpc"
+	channelz "google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/reflection"
 )
 
-func NewServer(ctx context.Context, snapshotCache cache.SnapshotCache) *grpc.Server {
-	xs := xds.NewServer(ctx, snapshotCache, nil)
+func NewServer(ctx context.Context, snapshotCache cache.SnapshotCache, config *Config) *grpc.Server {
+	xs := xds.NewServer(ctx, snapshotCache, &callbacks{})
 	gs := grpc.NewServer()
 
 	discovery.RegisterAggregatedDiscoveryServiceServer(gs, xs)
+	api.RegisterClusterDiscoveryServiceServer(gs, xs)
 
-	// TODO:
-	reflection.Register(gs)
+	if config.EnableChannelz {
+		channelz.RegisterChannelzServiceToServer(gs)
+	}
+
+	if config.EnableReflection {
+		reflection.Register(gs)
+	}
 
 	return gs
 }

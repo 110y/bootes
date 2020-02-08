@@ -17,7 +17,11 @@ type Server struct {
 }
 
 func NewServer(ctx context.Context, snapshotCache *cache.Cache, config *Config) (*Server, error) {
-	s := xdsgrpc.NewServer(ctx, snapshotCache)
+	gc := &xdsgrpc.Config{
+		EnableChannelz:   config.EnableGRPCChannelz,
+		EnableReflection: config.EnableGRPCReflection,
+	}
+	gs := xdsgrpc.NewServer(ctx, snapshotCache, gc)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
 	if err != nil {
@@ -26,7 +30,7 @@ func NewServer(ctx context.Context, snapshotCache *cache.Cache, config *Config) 
 	}
 
 	return &Server{
-		grpcServer:    s,
+		grpcServer:    gs,
 		listener:      lis,
 		snapshotCache: snapshotCache,
 	}, nil

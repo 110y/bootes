@@ -1,8 +1,9 @@
 package xds
 
 type Config struct {
-	Port             uint16
-	EnableReflection bool
+	Port                 uint32
+	EnableGRPCChannelz   bool
+	EnableGRPCReflection bool
 }
 
 func (c *Config) validate() error {

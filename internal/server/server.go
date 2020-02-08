@@ -19,8 +19,9 @@ func run(ctx context.Context) error {
 	c := cache.NewCache()
 
 	xs, err := xds.NewServer(ctx, c, &xds.Config{
-		Port:             8080, // TODO:
-		EnableReflection: true, // TODO:
+		Port:                 8080, // TODO:
+		EnableGRPCChannelz:   true, // TODO:
+		EnableGRPCReflection: true, // TODO:
 	})
 	if err != nil {
 		// TODO: wrap
