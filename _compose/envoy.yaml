@@ -13,19 +13,15 @@ admin:
 
 dynamic_resources:
   cds_config:
-    api_config_source:
-      api_type: GRPC
-      grpc_services:
-        - envoy_grpc:
-            cluster_name: bootes
-      set_node_on_first_message_only: true
+    ads: {}
   lds_config:
-    api_config_source:
-      api_type: GRPC
-      grpc_services:
-        - envoy_grpc:
-            cluster_name: bootes
-      set_node_on_first_message_only: true
+    ads: {}
+  ads_config:
+    api_type: GRPC
+    grpc_services:
+      - envoy_grpc:
+          cluster_name: bootes
+    set_node_on_first_message_only: true
 
 static_resources:
   clusters:

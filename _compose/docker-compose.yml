@@ -12,6 +12,6 @@ services:
   envoy:
     image: envoyproxy/envoy:v1.13.0
     volumes:
-      - ${PWD}/compose/envoy.yaml:/etc/envoy/envoy.yaml
+      - ${PWD}/_compose/envoy.yaml:/etc/envoy/envoy.yaml
     ports:
       - 15000:15000

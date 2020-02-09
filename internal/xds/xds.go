@@ -37,5 +37,6 @@ func NewServer(ctx context.Context, snapshotCache *cache.Cache, config *Config) 
 }
 
 func (s *Server) Start() error {
+	// TODO: wrap error
 	return s.grpcServer.Serve(s.listener)
 }

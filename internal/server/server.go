@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/110y/bootes/internal/cache"
+	"github.com/110y/bootes/internal/k8s"
 	"github.com/110y/bootes/internal/xds"
 )
 
@@ -27,6 +28,8 @@ func run(ctx context.Context) error {
 		// TODO: wrap
 		return err
 	}
+
+	k8s.NewController(c)
 
 	errChan := make(chan error, 1)
 

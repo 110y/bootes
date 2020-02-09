@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 
-	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/cache"
 	xds "github.com/envoyproxy/go-control-plane/pkg/server"
@@ -17,7 +16,7 @@ func NewServer(ctx context.Context, snapshotCache cache.SnapshotCache, config *C
 	gs := grpc.NewServer()
 
 	discovery.RegisterAggregatedDiscoveryServiceServer(gs, xs)
-	api.RegisterClusterDiscoveryServiceServer(gs, xs)
+	// api.RegisterClusterDiscoveryServiceServer(gs, xs)
 
 	if config.EnableChannelz {
 		channelz.RegisterChannelzServiceToServer(gs)
