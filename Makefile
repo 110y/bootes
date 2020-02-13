@@ -3,3 +3,6 @@ manifests: bin/controller-gen
 
 bin/controller-gen: go.mod go.sum
 	@go build -o ./bin/controller-gen sigs.k8s.io/controller-tools/cmd/controller-gen
+
+bin/type-scaffold: go.mod go.sum
+	@go build -o ./bin/type-scaffold sigs.k8s.io/controller-tools/cmd/type-scaffold
