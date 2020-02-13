@@ -1,11 +1,13 @@
-manifests: bin/controller-gen
-	@./bin/controller-gen crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/crd/bases output:stdout
+CONTROLLER_GEN := bin/controller-gen
 
-deepcopy: bin/controller-gen
-	@./bin/controller-gen object paths=./internal/k8s/api/...
+manifests: $(CONTROLLER_GEN)
+	@$(CONTROLLER_GEN) crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/crd/bases output:stdout
 
-bin/controller-gen: go.mod go.sum
-	@go build -o ./bin/controller-gen sigs.k8s.io/controller-tools/cmd/controller-gen
+deepcopy: $(CONTROLLER_GEN)
+	@$(CONTROLLER_GEN) object paths=./internal/k8s/api/...
 
-bin/type-scaffold: go.mod go.sum
+$(CONTROLLER_GEN): go.sum
+	@go build -o $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
+
+bin/type-scaffold: go.sum
 	@go build -o ./bin/type-scaffold sigs.k8s.io/controller-tools/cmd/type-scaffold
