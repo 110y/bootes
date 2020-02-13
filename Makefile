@@ -1,6 +1,9 @@
 manifests: bin/controller-gen
 	@./bin/controller-gen crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/crd/bases output:stdout
 
+deepcopy: bin/controller-gen
+	@./bin/controller-gen object paths=./internal/k8s/api/...
+
 bin/controller-gen: go.mod go.sum
 	@go build -o ./bin/controller-gen sigs.k8s.io/controller-tools/cmd/controller-gen
 
