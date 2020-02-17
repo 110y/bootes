@@ -11,3 +11,6 @@ $(CONTROLLER_GEN): go.sum
 
 bin/type-scaffold: go.sum
 	@go build -o ./bin/type-scaffold sigs.k8s.io/controller-tools/cmd/type-scaffold
+
+bin/kind: go.sum
+	@go build -o ./bin/kind sigs.k8s.io/kind
