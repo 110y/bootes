@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"github.com/110y/bootes/internal/cache"
+	"github.com/110y/bootes/internal/k8s/internal/controller"
 	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
@@ -9,9 +10,12 @@ import (
 	"github.com/golang/protobuf/ptypes/duration"
 )
 
-type Controller struct{}
+type Controller struct {
+	controller *controller.Controller
+	cache      *cache.Cache
+}
 
-func NewController(sc *cache.Cache) *Controller {
+func NewController(sc *cache.Cache) (*Controller, error) {
 	var clusters, endpoints, routes, listeners, runtimes []xdscache.Resource
 
 	c := &api.Cluster{
@@ -51,8 +55,22 @@ func NewController(sc *cache.Cache) *Controller {
 
 	sp := xdscache.NewSnapshot("1.0)", endpoints, clusters, routes, listeners, runtimes)
 	if err := sc.SetSnapshot("id", sp); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return &Controller{}
+	// TODO:
+	ctrl, err := controller.NewController()
+	if err != nil {
+		// TODO:
+		return nil, err
+	}
+
+	return &Controller{
+		controller: ctrl,
+		cache:      sc,
+	}, nil
+}
+
+func (c *Controller) Start() error {
+	return c.controller.Start()
 }

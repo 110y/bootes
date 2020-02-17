@@ -34,3 +34,7 @@ type ClusterList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Cluster `json:"items"`
 }
+
+func init() {
+	SchemeBuilder.Register(&Cluster{}, &ClusterList{})
+}

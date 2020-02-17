@@ -20,7 +20,7 @@ func run(ctx context.Context) error {
 	c := cache.NewCache()
 
 	xs, err := xds.NewServer(ctx, c, &xds.Config{
-		Port:                 8080, // TODO:
+		Port:                 8081, // TODO:
 		EnableGRPCChannelz:   true, // TODO:
 		EnableGRPCReflection: true, // TODO:
 	})
@@ -29,23 +29,33 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	k8s.NewController(c)
+	ctrl, err := k8s.NewController(c)
+	if err != nil {
+		// TODO:
+		return err
+	}
 
 	errChan := make(chan error, 1)
 
-	// TODO:
 	go func() {
 		if err := xs.Start(); err != nil {
 			errChan <- err
 		}
 	}()
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		if err := ctrl.Start(); err != nil {
+			errChan <- err
+		}
+	}()
 
+	terminationChan := make(chan os.Signal, 1)
+	signal.Notify(terminationChan, syscall.SIGTERM, syscall.SIGINT)
+
+	// TODO:
 	select {
-	case <-sigChan:
-		// TODO: stop
+	case <-terminationChan:
+		// TODO: stop servers
 		return nil
 	case <-errChan:
 		return err
@@ -56,6 +66,9 @@ func exit(err error) {
 	if err != nil {
 		// TODO: implement
 		fmt.Fprintf(os.Stderr, err.Error())
+
 		os.Exit(1)
 	}
+
+	os.Exit(0)
 }

@@ -1,0 +1,55 @@
+package controller
+
+import (
+	"fmt"
+
+	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+)
+
+type Controller struct {
+	manager ctrl.Manager
+}
+
+func NewController() (*Controller, error) {
+	s := runtime.NewScheme()
+	if err := scheme.AddToScheme(s); err != nil {
+		return nil, fmt.Errorf("failed to create new scheme: %s\n", err)
+	}
+
+	if err := apiv1.AddToScheme(s); err != nil {
+		return nil, fmt.Errorf("failed to add scheme to apiv1: %s\n", err)
+	}
+
+	cfg, err := ctrl.GetConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	manager, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme: s,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create manager: %s\n", err)
+	}
+
+	cr := &ClusterReconciler{
+		Client: manager.GetClient(),
+		// Scheme: manager.GetScheme(),
+	}
+
+	if err := cr.SetupWithManager(manager); err != nil {
+		return nil, fmt.Errorf("failed to setup manager: %s\n", err)
+	}
+
+	return &Controller{
+		manager: manager,
+	}, nil
+}
+
+func (c *Controller) Start() error {
+	// TODO: do not use signal handler directly
+	return c.manager.Start(ctrl.SetupSignalHandler())
+}
