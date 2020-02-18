@@ -2,6 +2,7 @@ CONTROLLER_GEN := bin/controller-gen
 TYPE_SCAFFOLD  := bin/type-scaffold
 KIND           := bin/kind
 KUBECTL        := bin/kubectl
+SKAFFOLD       := bin/skaffold
 
 KIND_NODE_VERSION := v1.17.2
 
@@ -17,6 +18,10 @@ $(KIND): go.sum
 $(KUBECTL): .kubectl-version
 	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/$(shell cat .kubectl-version)/bin/$(shell go env GOOS)/$(shell go env GOARCH)/kubectl
 	@chmod +x $(KUBECTL)
+
+$(SKAFFOLD): skaffold/.skaffold-version
+	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat skaffold/.skaffold-version)/skaffold-$(shell go env GOOS)-$(shell go env GOARCH)
+	@chmod +x $(SKAFFOLD)
 
 .PHONY: manifests
 manifests: $(CONTROLLER_GEN)
