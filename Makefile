@@ -1,26 +1,45 @@
+GOOS   := $(shell go env GOOS)
+GOARCH := $(shell go env GOARCH)
+
+KUBEBUILDER_VERSION := 2.2.0
+KUBEBUILDER_DIR     := $(shell pwd)/kubebuilder
+KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
+KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
+
 CONTROLLER_GEN := bin/controller-gen
 TYPE_SCAFFOLD  := bin/type-scaffold
 KIND           := bin/kind
 KUBECTL        := bin/kubectl
 SKAFFOLD       := bin/skaffold
 
-KIND_NODE_VERSION := v1.17.2
+KIND_NODE_VERSION := 1.17.2
 
+.PHONY: kubebuilder
+kubebuilder: $(KUBEBUILDER)
+$(KUBEBUILDER):
+	@curl -sL https://go.kubebuilder.io/dl/$(KUBEBUILDER_VERSION)/$(GOOS)/$(GOARCH) | tar -xz -C /tmp/
+	@mv /tmp/kubebuilder_$(KUBEBUILDER_VERSION)_$(GOOS)_$(GOARCH) $(KUBEBUILDER_DIR)
+
+controlller-gen: $(CONTROLLER_GEN)
 $(CONTROLLER_GEN): go.sum
 	@go build -o $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
 
+type-scaffold: $(TYPE_SCAFFOLD)
 $(TYPE_SCAFFOLD): go.sum
 	@go build -o $(TYPE_SCAFFOLD) sigs.k8s.io/controller-tools/cmd/type-scaffold
 
+kind: $(KIND)
 $(KIND): go.sum
 	@go build -o $(KIND) sigs.k8s.io/kind
 
+kubectl: $(KUBECTL)
 $(KUBECTL): .kubectl-version
-	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/$(shell cat .kubectl-version)/bin/$(shell go env GOOS)/$(shell go env GOARCH)/kubectl
+	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/$(shell cat .kubectl-version)/bin/$(GOOS)/$(GOARCH)/kubectl
 	@chmod +x $(KUBECTL)
 
-$(SKAFFOLD): skaffold/.skaffold-version
-	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat skaffold/.skaffold-version)/skaffold-$(shell go env GOOS)-$(shell go env GOARCH)
+skaffold: $(SKAFFOLD)
+$(SKAFFOLD): .skaffold-version
+	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat .skaffold-version)/skaffold-$(GOOS)-$(GOARCH)
 	@chmod +x $(SKAFFOLD)
 
 .PHONY: manifests
@@ -34,5 +53,19 @@ deepcopy: $(CONTROLLER_GEN)
 .PHONY: kind-cluster
 kind-cluster: $(KIND) $(KUBECTL)
 	@$(KIND) delete cluster --name bootes
-	@$(KIND) create cluster --name bootes --image kindest/node:${KIND_NODE_VERSION}
-	@$(KUBECTL) apply -f ./kubernetes/crd/bases/labolith.com_clusters.yaml
+	@$(KIND) create cluster --name bootes --image kindest/node:v${KIND_NODE_VERSION}
+	make apply-manifests
+
+.PHONY: run
+run: $(SKAFFOLD)
+	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
+	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) dev --filename=./skaffold/skaffold.yaml
+
+.PHONY: test
+test:
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) go test -race ./...
+
+.PHONY: apply-manifests
+apply-manifests: $(KUBECTL)
+	@$(KUBECTL) apply -f ./kubernetes/crd/bases/
+	@$(KUBECTL) apply -f ./kind/
