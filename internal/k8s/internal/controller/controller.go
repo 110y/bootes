@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 
+	"github.com/110y/bootes/internal/cache"
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -11,9 +12,10 @@ import (
 
 type Controller struct {
 	manager ctrl.Manager
+	cache   *cache.Cache
 }
 
-func NewController() (*Controller, error) {
+func NewController(cache *cache.Cache) (*Controller, error) {
 	s := runtime.NewScheme()
 	if err := scheme.AddToScheme(s); err != nil {
 		return nil, fmt.Errorf("failed to create new scheme: %s\n", err)
@@ -37,6 +39,7 @@ func NewController() (*Controller, error) {
 
 	cr := &ClusterReconciler{
 		Client: manager.GetClient(),
+		Cache:  cache,
 		// Scheme: manager.GetScheme(),
 	}
 
@@ -46,6 +49,7 @@ func NewController() (*Controller, error) {
 
 	return &Controller{
 		manager: manager,
+		cache:   cache,
 	}, nil
 }
 

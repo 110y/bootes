@@ -51,10 +51,16 @@ deepcopy: $(CONTROLLER_GEN)
 	@$(CONTROLLER_GEN) object paths=./internal/k8s/api/...
 
 .PHONY: kind-cluster
-kind-cluster: $(KIND) $(KUBECTL)
+kind-cluster: $(KIND) $(KUBECTL) kind-image
 	@$(KIND) delete cluster --name bootes
 	@$(KIND) create cluster --name bootes --image kindest/node:v${KIND_NODE_VERSION}
 	make apply-manifests
+
+.PHONY: kind-image
+kind-image: $(KIND)
+	@docker build -t 110y/bootes-envoy:latest ./kind/envoy
+	$(KIND) load docker-image 110y/bootes-envoy:latest --name bootes
+	@$(KUBECTL) apply -f ./kind/envoy-pod.yaml
 
 .PHONY: run
 run: $(SKAFFOLD)

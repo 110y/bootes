@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bootes
+  namespace: bootes
+  labels:
+    app: bootes
+spec:
+  containers:
+    - name: bootes
+      image: bootes

@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: envoy
+  namespace: envoy
+spec:
+  containers:
+    - name: envoy
+      image: 110y/bootes-envoy:latest
+      imagePullPolicy: Never
