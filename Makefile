@@ -51,21 +51,28 @@ deepcopy: $(CONTROLLER_GEN)
 	@$(CONTROLLER_GEN) object paths=./internal/k8s/api/...
 
 .PHONY: kind-cluster
-kind-cluster: $(KIND) $(KUBECTL) kind-image
+kind-cluster: $(KIND) $(KUBECTL)
 	@$(KIND) delete cluster --name bootes
 	@$(KIND) create cluster --name bootes --image kindest/node:v${KIND_NODE_VERSION}
+	make kind-image
 	make apply-manifests
 
 .PHONY: kind-image
 kind-image: $(KIND)
 	@docker build -t 110y/bootes-envoy:latest ./kind/envoy
 	$(KIND) load docker-image 110y/bootes-envoy:latest --name bootes
-	@$(KUBECTL) apply -f ./kind/envoy-pod.yaml
 
-.PHONY: run
-run: $(SKAFFOLD)
+.PHONY: dev
+dev: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
+	@$(KUBECTL) config use-context kind-bootes
 	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) dev --filename=./skaffold/skaffold.yaml
+
+.PHONY: debug
+debug: $(SKAFFOLD)
+	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
+	@$(KUBECTL) config use-context kind-bootes
+	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) debug --filename=./skaffold/skaffold.yaml
 
 .PHONY: test
 test:
@@ -74,4 +81,6 @@ test:
 .PHONY: apply-manifests
 apply-manifests: $(KUBECTL)
 	@$(KUBECTL) apply -f ./kubernetes/crd/bases/
-	@$(KUBECTL) apply -f ./kind/
+	@$(KUBECTL) apply -f ./kind/namespace.yaml
+	sleep 15 # wait for namespace booting
+	@$(KUBECTL) apply -f ./kind/manifest/

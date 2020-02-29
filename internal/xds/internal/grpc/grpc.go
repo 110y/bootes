@@ -16,7 +16,6 @@ func NewServer(ctx context.Context, snapshotCache cache.SnapshotCache, config *C
 	gs := grpc.NewServer()
 
 	discovery.RegisterAggregatedDiscoveryServiceServer(gs, xs)
-	// api.RegisterClusterDiscoveryServiceServer(gs, xs)
 
 	if config.EnableChannelz {
 		channelz.RegisterChannelzServiceToServer(gs)

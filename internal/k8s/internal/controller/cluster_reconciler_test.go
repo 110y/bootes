@@ -8,18 +8,18 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
-func TestClusterReconciler_Reconcile(t *testing.T) {
-	cli, teardown := setup(t)
-	defer teardown()
+// func TestClusterReconciler_Reconcile(t *testing.T) {
+//     cli, teardown := setup(t)
+//     defer teardown()
 
-	tests := map[string]struct{}{}
+//     tests := map[string]struct{}{}
 
-	for name, test := range tests {
-		test := test
-		t.Run(name, func(t *testing.T) {
-		})
-	}
-}
+//     for name, test := range tests {
+//         test := test
+//         t.Run(name, func(t *testing.T) {
+//         })
+//     }
+// }
 
 func setup(t *testing.T) (client.Client, func()) {
 	t.Helper()
