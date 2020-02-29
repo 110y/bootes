@@ -19,6 +19,12 @@ func Run() {
 func run(ctx context.Context) error {
 	c := cache.NewCache()
 
+	controller, err := k8s.NewController(c)
+	if err != nil {
+		// TODO:
+		return err
+	}
+
 	xs, err := xds.NewServer(ctx, c, &xds.Config{
 		Port:                 8081, // TODO:
 		EnableGRPCChannelz:   true, // TODO:
@@ -26,12 +32,6 @@ func run(ctx context.Context) error {
 	})
 	if err != nil {
 		// TODO: wrap
-		return err
-	}
-
-	ctrl, err := k8s.NewController(c)
-	if err != nil {
-		// TODO:
 		return err
 	}
 
@@ -44,7 +44,7 @@ func run(ctx context.Context) error {
 	}()
 
 	go func() {
-		if err := ctrl.Start(); err != nil {
+		if err := controller.Start(); err != nil {
 			errChan <- err
 		}
 	}()

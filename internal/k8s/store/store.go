@@ -1,17 +1,37 @@
 package store
 
+import (
+	"context"
+
+	api "github.com/110y/bootes/internal/k8s/api/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
 var _ Store = &store{}
 
 type Store interface {
-	GetClustersByNamespace(string) error
+	GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error)
 }
 
-type store struct{}
-
-func NewStore() *store {
-	return &store{}
+type store struct {
+	client client.Client
 }
 
-func (s *store) GetClustersByNamespace(namespace string) error {
-	return nil
+func NewStore(c client.Client) *store {
+	return &store{client: c}
+}
+
+func (s *store) GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error) {
+	key := client.ObjectKey{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	var cluster api.Cluster
+	if err := s.client.Get(ctx, key, &cluster); err != nil {
+		// TODO:
+		return nil, err
+	}
+
+	return &cluster, nil
 }

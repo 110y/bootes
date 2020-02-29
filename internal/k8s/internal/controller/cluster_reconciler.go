@@ -6,18 +6,18 @@ import (
 
 	"github.com/110y/bootes/internal/cache"
 	api "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/k8s/store"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/golang/protobuf/ptypes/duration"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type ClusterReconciler struct {
-	client.Client
-	Cache *cache.Cache
+	store store.Store
+	cache *cache.Cache
 	// Scheme *runtime.Scheme
 }
 
@@ -26,8 +26,8 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	fmt.Println("START: RECONCILE")
 
-	var cluster api.Cluster
-	if err := r.Get(ctx, req.NamespacedName, &cluster); err != nil {
+	cluster, err := r.store.GetCluster(ctx, req.Name, req.Namespace)
+	if err != nil {
 		// TODO:
 		fmt.Println(fmt.Sprintf("RECONCILE: ERROR: %s", err))
 		return ctrl.Result{}, err
@@ -71,7 +71,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	clusters = append(clusters, c)
 
 	snapshot := xdscache.NewSnapshot("2.0)", nil, clusters, nil, nil, nil)
-	if err := r.Cache.SetSnapshot("id", snapshot); err != nil {
+	if err := r.cache.SetSnapshot("id", snapshot); err != nil {
 		return ctrl.Result{}, err
 	}
 

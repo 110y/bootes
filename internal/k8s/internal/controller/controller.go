@@ -5,6 +5,7 @@ import (
 
 	"github.com/110y/bootes/internal/cache"
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/k8s/store"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -12,6 +13,7 @@ import (
 
 type Controller struct {
 	manager ctrl.Manager
+	store   store.Store
 	cache   *cache.Cache
 }
 
@@ -37,9 +39,11 @@ func NewController(cache *cache.Cache) (*Controller, error) {
 		return nil, fmt.Errorf("failed to create manager: %s\n", err)
 	}
 
+	st := store.NewStore(manager.GetClient())
+
 	cr := &ClusterReconciler{
-		Client: manager.GetClient(),
-		Cache:  cache,
+		store: st,
+		cache: cache,
 		// Scheme: manager.GetScheme(),
 	}
 
@@ -49,6 +53,7 @@ func NewController(cache *cache.Cache) (*Controller, error) {
 
 	return &Controller{
 		manager: manager,
+		store:   st,
 		cache:   cache,
 	}, nil
 }
@@ -56,4 +61,8 @@ func NewController(cache *cache.Cache) (*Controller, error) {
 func (c *Controller) Start() error {
 	// TODO: do not use signal handler directly
 	return c.manager.Start(ctrl.SetupSignalHandler())
+}
+
+func (c *Controller) GetStore() store.Store {
+	return c.store
 }
