@@ -12,6 +12,7 @@ type callbacks struct{}
 
 func (c *callbacks) OnStreamOpen(context.Context, int64, string) error {
 	fmt.Println("OnStreamOpen")
+
 	return nil
 }
 
@@ -19,13 +20,22 @@ func (c *callbacks) OnStreamClosed(int64) {
 	fmt.Println("OnStreamClosed")
 }
 
-func (c *callbacks) OnStreamRequest(int64, *api.DiscoveryRequest) error {
-	fmt.Println("OnStreamRequest")
+func (c *callbacks) OnStreamRequest(streamID int64, req *api.DiscoveryRequest) error {
+	fmt.Println(fmt.Sprintf("OnStreamRequest. version:`%s`", req.VersionInfo))
+
+	// TODO: get clusters by namespace
+
+	// TODO: filter clusters by label selector
+
+	// TODO: save clusters to cache
+
+	// TODO: set cache to node
+
 	return nil
 }
 
-func (c *callbacks) OnStreamResponse(int64, *api.DiscoveryRequest, *api.DiscoveryResponse) {
-	fmt.Println("OnStreamResponse")
+func (c *callbacks) OnStreamResponse(streamID int64, req *api.DiscoveryRequest, res *api.DiscoveryResponse) {
+	fmt.Println(fmt.Sprintf("OnStreamResponse. version:`%s`", res.VersionInfo))
 }
 
 func (c callbacks) OnFetchRequest(context.Context, *api.DiscoveryRequest) error {
