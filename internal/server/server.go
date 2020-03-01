@@ -25,7 +25,7 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	xs, err := xds.NewServer(ctx, c, &xds.Config{
+	xs, err := xds.NewServer(ctx, c, controller.GetStore(), &xds.Config{
 		Port:                 8081, // TODO:
 		EnableGRPCChannelz:   true, // TODO:
 		EnableGRPCReflection: true, // TODO:

@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/110y/bootes/internal/k8s/store"
 	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/server"
 )
 
-type callbacks struct{}
+type callbacks struct {
+	k8sStore store.Store
+}
 
 func (c *callbacks) OnStreamOpen(context.Context, int64, string) error {
 	fmt.Println("OnStreamOpen")

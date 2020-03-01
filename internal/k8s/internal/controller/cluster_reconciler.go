@@ -24,14 +24,24 @@ type ClusterReconciler struct {
 func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 
-	fmt.Println("START: RECONCILE")
-
 	cluster, err := r.store.GetCluster(ctx, req.Name, req.Namespace)
 	if err != nil {
-		// TODO:
+		// TODO: treat not found
 		fmt.Println(fmt.Sprintf("RECONCILE: ERROR: %s", err))
 		return ctrl.Result{}, err
 	}
+
+	// TODO: list pods by namespace
+	// podList, err := r.store.ListPodsByNamespace(ctx, req.Namespace)
+	// if err != nil {
+	//     // TODO: handle err
+	//     return ctrl.Result{}, err
+	// }
+
+	// for _, pod := range podList.Items {
+	// }
+
+	// TODO: add cluster to each pod
 
 	fmt.Println(fmt.Sprintf("RECONCILE: %s", cluster.Spec.Name))
 

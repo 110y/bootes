@@ -10,6 +10,7 @@ import (
 var _ Store = &store{}
 
 type Store interface {
+	ListPodsByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error)
 	GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error)
 }
 
@@ -29,9 +30,27 @@ func (s *store) GetCluster(ctx context.Context, name, namespace string) (*api.Cl
 
 	var cluster api.Cluster
 	if err := s.client.Get(ctx, key, &cluster); err != nil {
+		err = client.IgnoreNotFound(err)
+		if err != nil {
+			// TODO:
+			return nil, err
+		}
+		// TODO:
+		return nil, nil
+	}
+
+	return &cluster, nil
+}
+
+func (s *store) ListPodsByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error) {
+	var clusterList api.ClusterList
+	err := s.client.List(ctx, &clusterList, &client.ListOptions{
+		Namespace: namespace,
+	})
+	if err != nil {
 		// TODO:
 		return nil, err
 	}
 
-	return &cluster, nil
+	return &clusterList, nil
 }
