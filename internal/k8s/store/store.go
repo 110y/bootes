@@ -16,10 +16,14 @@ type Store interface {
 
 type store struct {
 	client client.Client
+	reader client.Reader
 }
 
-func NewStore(c client.Client) *store {
-	return &store{client: c}
+func New(c client.Client, reader client.Reader) Store {
+	return &store{
+		client: c,
+		reader: reader,
+	}
 }
 
 func (s *store) GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error) {

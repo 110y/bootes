@@ -24,7 +24,7 @@ func TestGetCluster(t *testing.T) {
 	cli, teardown := testutils.SetupEnvtest(t)
 	defer teardown()
 
-	s := store.NewStore(cli)
+	s := store.New(cli, cli)
 
 	ctx := context.Background()
 	for name, test := range tests {
@@ -53,7 +53,7 @@ func TestListCluster(t *testing.T) {
 	cli, teardown := testutils.SetupEnvtest(t)
 	defer teardown()
 
-	s := store.NewStore(cli)
+	s := store.New(cli, cli)
 
 	ctx := context.Background()
 	for name, test := range tests {

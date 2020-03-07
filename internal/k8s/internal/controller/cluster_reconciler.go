@@ -4,15 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/110y/bootes/internal/cache"
 	api "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
+	"github.com/110y/bootes/internal/xds/cache"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
+
+func NewClusterReconciler(s store.Store, c cache.Cache) reconcile.Reconciler {
+	return &ClusterReconciler{
+		store: s,
+		cache: c,
+		// Scheme: manager.GetScheme(),
+	}
+}
 
 type ClusterReconciler struct {
 	store store.Store
-	cache *cache.Cache
+	cache cache.Cache
 	// Scheme *runtime.Scheme
 }
 

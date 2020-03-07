@@ -7,31 +7,50 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/110y/bootes/internal/cache"
 	"github.com/110y/bootes/internal/k8s"
+	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds"
+	"github.com/110y/bootes/internal/xds/cache"
 )
 
 func Run() {
 	exit(run(context.Background()))
 }
 
-func run(ctx context.Context) error {
-	c := cache.NewCache()
-
-	controller, err := k8s.NewController(c)
+func exit(err error) {
 	if err != nil {
-		// TODO:
-		return err
+		// TODO: implement
+		fmt.Fprintf(os.Stderr, err.Error())
+
+		os.Exit(1)
 	}
 
-	xs, err := xds.NewServer(ctx, c, controller.GetStore(), &xds.Config{
+	os.Exit(0)
+}
+
+func run(ctx context.Context) error {
+	sc := xds.NewSnapshotCache()
+	c := cache.New(sc)
+
+	mgr, err := k8s.NewManager()
+	if err != nil {
+		return fmt.Errorf("failed to create k8s manager: %w", err)
+	}
+
+	s := store.New(mgr.GetClient(), mgr.GetAPIReader())
+
+	xs, err := xds.NewServer(ctx, sc, c, s, &xds.Config{
 		Port:                 8081, // TODO:
 		EnableGRPCChannelz:   true, // TODO:
 		EnableGRPCReflection: true, // TODO:
 	})
 	if err != nil {
-		// TODO: wrap
+		return fmt.Errorf("failed to create xds server: %w", err)
+	}
+
+	ctrl, err := k8s.NewController(mgr, s, c)
+	if err != nil {
+		// TODO:
 		return err
 	}
 
@@ -44,7 +63,7 @@ func run(ctx context.Context) error {
 	}()
 
 	go func() {
-		if err := controller.Start(); err != nil {
+		if err := ctrl.Start(); err != nil {
 			errChan <- err
 		}
 	}()
@@ -60,15 +79,4 @@ func run(ctx context.Context) error {
 	case <-errChan:
 		return err
 	}
-}
-
-func exit(err error) {
-	if err != nil {
-		// TODO: implement
-		fmt.Fprintf(os.Stderr, err.Error())
-
-		os.Exit(1)
-	}
-
-	os.Exit(0)
 }
