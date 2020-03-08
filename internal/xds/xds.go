@@ -10,6 +10,7 @@ import (
 	xdsgrpc "github.com/110y/bootes/internal/xds/internal/grpc"
 	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache"
 	"github.com/envoyproxy/go-control-plane/pkg/server"
+	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
 )
 
@@ -42,9 +43,8 @@ func NewServer(ctx context.Context, sc xdscache.SnapshotCache, c cache.Cache, s 
 	}, nil
 }
 
-func NewSnapshotCache() xdscache.SnapshotCache {
-	// TODO: logger
-	return xdscache.NewSnapshotCache(true, xdscache.IDHash{}, nil)
+func NewSnapshotCache(l logr.Logger) xdscache.SnapshotCache {
+	return xdscache.NewSnapshotCache(true, xdscache.IDHash{}, &snapshotCacheLogger{logger: l})
 }
 
 func (s *Server) Start() error {

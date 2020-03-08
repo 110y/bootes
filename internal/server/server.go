@@ -29,7 +29,12 @@ func exit(err error) {
 }
 
 func run(ctx context.Context) error {
-	sc := xds.NewSnapshotCache()
+	l, err := newLogger()
+	if err != nil {
+		return err
+	}
+
+	sc := xds.NewSnapshotCache(l.WithName("xds").WithName("snapshot_cache"))
 	c := cache.New(sc)
 
 	mgr, err := k8s.NewManager()
@@ -48,7 +53,7 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to create xds server: %w", err)
 	}
 
-	ctrl, err := k8s.NewController(mgr, s, c)
+	ctrl, err := k8s.NewController(mgr, s, c, l.WithName("k8s"))
 	if err != nil {
 		// TODO:
 		return err
