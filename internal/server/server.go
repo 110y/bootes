@@ -14,49 +14,47 @@ import (
 )
 
 func Run() {
-	exit(run(context.Background()))
+	os.Exit(run(context.Background()))
 }
 
-func exit(err error) {
-	if err != nil {
-		// TODO: implement
-		fmt.Fprintf(os.Stderr, err.Error())
-
-		os.Exit(1)
-	}
-
-	os.Exit(0)
-}
-
-func run(ctx context.Context) error {
+func run(ctx context.Context) int {
 	l, err := newLogger()
 	if err != nil {
-		return err
+		_, ferr := fmt.Fprintf(os.Stderr, "failed to create logger: %s", err)
+		if ferr != nil {
+			// Unhandleable, something went wrong...
+			panic(fmt.Sprintf("failed to write log:`%s` original error is:`%s`", ferr, err))
+		}
 	}
 
-	sc := xds.NewSnapshotCache(l.WithName("xds").WithName("snapshot_cache"))
+	sl := l.WithName("server")
+
+	xl := l.WithName("xds")
+	sc := xds.NewSnapshotCache(xl.WithName("snapshot_cache"))
 	c := cache.New(sc)
 
 	mgr, err := k8s.NewManager()
 	if err != nil {
-		return fmt.Errorf("failed to create k8s manager: %w", err)
+		sl.Error(err, "failed to create k8s manager")
+		return 1
 	}
 
 	s := store.New(mgr.GetClient(), mgr.GetAPIReader())
 
-	xs, err := xds.NewServer(ctx, sc, c, s, &xds.Config{
+	xs, err := xds.NewServer(ctx, sc, c, s, xl, &xds.Config{
 		Port:                 8081, // TODO:
 		EnableGRPCChannelz:   true, // TODO:
 		EnableGRPCReflection: true, // TODO:
 	})
 	if err != nil {
-		return fmt.Errorf("failed to create xds server: %w", err)
+		sl.Error(err, "failed to create xds server")
+		return 1
 	}
 
 	ctrl, err := k8s.NewController(mgr, s, c, l.WithName("k8s"))
 	if err != nil {
-		// TODO:
-		return err
+		sl.Error(err, "failed to create k8s controller")
+		return 1
 	}
 
 	errChan := make(chan error, 1)
@@ -80,8 +78,10 @@ func run(ctx context.Context) error {
 	select {
 	case <-terminationChan:
 		// TODO: stop servers
-		return nil
+		return 0
 	case <-errChan:
-		return err
+		// TODO:
+		sl.Error(err, "failed to run server")
+		return 1
 	}
 }

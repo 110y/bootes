@@ -19,10 +19,11 @@ type Server struct {
 	listener   net.Listener
 }
 
-func NewServer(ctx context.Context, sc xdscache.SnapshotCache, c cache.Cache, s store.Store, config *Config) (*Server, error) {
+func NewServer(ctx context.Context, sc xdscache.SnapshotCache, c cache.Cache, s store.Store, l logr.Logger, config *Config) (*Server, error) {
 	srv := server.NewServer(ctx, sc, &callbacks{
-		xdsCache: c,
-		k8sStore: s,
+		cache:  c,
+		store:  s,
+		logger: l.WithName("callbacks"),
 	})
 
 	gc := &xdsgrpc.Config{
@@ -44,7 +45,7 @@ func NewServer(ctx context.Context, sc xdscache.SnapshotCache, c cache.Cache, s 
 }
 
 func NewSnapshotCache(l logr.Logger) xdscache.SnapshotCache {
-	return xdscache.NewSnapshotCache(true, xdscache.IDHash{}, &snapshotCacheLogger{logger: l})
+	return xdscache.NewSnapshotCache(true, xdscache.IDHash{}, newSnapshotCacheLogger(l))
 }
 
 func (s *Server) Start() error {

@@ -20,7 +20,6 @@ func NewController(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Log
 	ctrl.SetLogger(l)
 
 	if err := setupClusterReconciler(mgr, s, c, l.WithName("cluster_reconciler")); err != nil {
-		// TODO:
 		return nil, err
 	}
 
@@ -31,7 +30,7 @@ func setupClusterReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l
 	cr := controller.NewClusterReconciler(s, c, l)
 
 	if err := ctrl.NewControllerManagedBy(mgr).For(&apiv1.Cluster{}).Complete(cr); err != nil {
-		return fmt.Errorf("failed to setup cluster reconciler: %s\n", err)
+		return fmt.Errorf("failed to setup cluster reconciler: %s", err)
 	}
 
 	return nil

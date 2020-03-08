@@ -1,8 +1,6 @@
 package server
 
 import (
-	"fmt"
-
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
@@ -32,7 +30,7 @@ func newLogger() (logr.Logger, error) {
 
 	l, err := config.Build()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create zap logger: %w", err)
+		return nil, err
 	}
 
 	return zapr.NewLogger(l), nil

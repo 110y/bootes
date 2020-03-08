@@ -8,13 +8,15 @@ import (
 	"github.com/110y/bootes/internal/xds/cache"
 	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/server"
+	"github.com/go-logr/logr"
 )
 
 var _ server.Callbacks = &callbacks{}
 
 type callbacks struct {
-	xdsCache cache.Cache
-	k8sStore store.Store
+	cache  cache.Cache
+	store  store.Store
+	logger logr.Logger
 }
 
 func (c *callbacks) OnStreamOpen(context.Context, int64, string) error {
