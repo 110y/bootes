@@ -37,32 +37,3 @@ func TestGetCluster(t *testing.T) {
 		})
 	}
 }
-
-func TestListCluster(t *testing.T) {
-	tests := map[string]struct {
-		cluster   *apiv1.Cluster
-		name      string
-		namespace string
-	}{
-		"": {
-			name:      "foo",
-			namespace: "bar",
-		},
-	}
-
-	cli, teardown := testutils.SetupEnvtest(t)
-	defer teardown()
-
-	s := store.New(cli, cli)
-
-	ctx := context.Background()
-	for name, test := range tests {
-		test := test
-		t.Run(name, func(t *testing.T) {
-			_, err := s.ListPodsByNamespace(ctx, test.namespace)
-			if err != nil {
-				t.Errorf("failed %s", err)
-			}
-		})
-	}
-}

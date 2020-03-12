@@ -11,3 +11,17 @@ subjects:
   - kind: ServiceAccount
     name: default
     namespace: bootes
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bootes-pod-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: bootes-pod-reader
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: bootes

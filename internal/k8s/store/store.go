@@ -4,14 +4,15 @@ import (
 	"context"
 
 	api "github.com/110y/bootes/internal/k8s/api/v1"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var _ Store = &store{}
-
 type Store interface {
-	ListPodsByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error)
 	GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error)
+	ListPodsByNamespace(ctx context.Context, namespace string) (corev1.PodList, error)
+	ListClustersByNamespace(ctx context.Context, namespace string) (api.ClusterList, error)
 }
 
 type store struct {
@@ -34,11 +35,9 @@ func (s *store) GetCluster(ctx context.Context, name, namespace string) (*api.Cl
 
 	var cluster api.Cluster
 	if err := s.client.Get(ctx, key, &cluster); err != nil {
-		err = client.IgnoreNotFound(err)
-		if err != nil {
-			// TODO:
-			return nil, err
+		if apierrors.IsNotFound(err) {
 		}
+
 		// TODO:
 		return nil, nil
 	}
@@ -46,15 +45,28 @@ func (s *store) GetCluster(ctx context.Context, name, namespace string) (*api.Cl
 	return &cluster, nil
 }
 
-func (s *store) ListPodsByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error) {
-	var clusterList api.ClusterList
-	err := s.client.List(ctx, &clusterList, &client.ListOptions{
+func (s *store) ListClustersByNamespace(ctx context.Context, namespace string) (api.ClusterList, error) {
+	var clusters api.ClusterList
+	err := s.client.List(ctx, &clusters, &client.ListOptions{
 		Namespace: namespace,
 	})
 	if err != nil {
 		// TODO:
-		return nil, err
+		return clusters, err
 	}
 
-	return &clusterList, nil
+	return clusters, nil
+}
+
+func (s *store) ListPodsByNamespace(ctx context.Context, namespace string) (corev1.PodList, error) {
+	var pods corev1.PodList
+	err := s.client.List(ctx, &pods, &client.ListOptions{
+		Namespace: namespace,
+	})
+	if err != nil {
+		// TODO:
+		return pods, err
+	}
+
+	return pods, nil
 }

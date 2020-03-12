@@ -3,5 +3,6 @@ apiVersion: labolith.com/v1
 kind: Cluster
 metadata:
   name: cluster
+  namespace: envoy
 spec:
   name: 'testcluster'

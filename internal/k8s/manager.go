@@ -13,10 +13,10 @@ import (
 func NewManager() (manager.Manager, error) {
 	s := runtime.NewScheme()
 	if err := scheme.AddToScheme(s); err != nil {
-		return nil, fmt.Errorf("failed to create new scheme: %s", err)
+		return nil, fmt.Errorf("failed to create new scheme: %w", err)
 	}
 	if err := apiv1.AddToScheme(s); err != nil {
-		return nil, fmt.Errorf("failed to add scheme to apiv1: %s", err)
+		return nil, fmt.Errorf("failed to add scheme to apiv1: %w", err)
 	}
 
 	cfg, err := ctrl.GetConfig()
@@ -28,7 +28,7 @@ func NewManager() (manager.Manager, error) {
 		Scheme: s,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create manager: %s", err)
+		return nil, fmt.Errorf("failed to create manager: %w", err)
 	}
 
 	return manager, nil

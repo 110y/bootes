@@ -10,7 +10,7 @@ import (
 )
 
 type Cache interface {
-	AddCluster(node string, cluster *apiv1.Cluster) error
+	UpdateClusters(node, version string, cluster []apiv1.Cluster) error
 }
 
 type cache struct {
@@ -23,27 +23,30 @@ func New(snapshotCache xdscache.SnapshotCache) Cache {
 	}
 }
 
-func (c *cache) AddCluster(node string, cluster *apiv1.Cluster) error {
-	cl := &envoyapi.Cluster{
-		Name: cluster.Spec.Name,
-		ClusterDiscoveryType: &envoyapi.Cluster_Type{
-			Type: envoyapi.Cluster_LOGICAL_DNS,
-		},
-		ConnectTimeout: &duration.Duration{Seconds: 1},
-		LoadAssignment: &envoyapi.ClusterLoadAssignment{
-			ClusterName: "awesomeassign",
-			Endpoints: []*endpoint.LocalityLbEndpoints{
-				{
-					LbEndpoints: []*endpoint.LbEndpoint{
-						{
-							HostIdentifier: &endpoint.LbEndpoint_Endpoint{
-								Endpoint: &endpoint.Endpoint{
-									Address: &core.Address{
-										Address: &core.Address_SocketAddress{
-											SocketAddress: &core.SocketAddress{
-												Address: "foo",
-												PortSpecifier: &core.SocketAddress_PortValue{
-													PortValue: 9090,
+func (c *cache) UpdateClusters(node, version string, clusters []apiv1.Cluster) error {
+	var resources []xdscache.Resource
+	for _, cl := range clusters {
+		resource := &envoyapi.Cluster{
+			Name: cl.Spec.Name,
+			ClusterDiscoveryType: &envoyapi.Cluster_Type{
+				Type: envoyapi.Cluster_LOGICAL_DNS,
+			},
+			ConnectTimeout: &duration.Duration{Seconds: 1},
+			LoadAssignment: &envoyapi.ClusterLoadAssignment{
+				ClusterName: "awesomeassign",
+				Endpoints: []*endpoint.LocalityLbEndpoints{
+					{
+						LbEndpoints: []*endpoint.LbEndpoint{
+							{
+								HostIdentifier: &endpoint.LbEndpoint_Endpoint{
+									Endpoint: &endpoint.Endpoint{
+										Address: &core.Address{
+											Address: &core.Address_SocketAddress{
+												SocketAddress: &core.SocketAddress{
+													Address: "foo",
+													PortSpecifier: &core.SocketAddress_PortValue{
+														PortValue: 9090,
+													},
 												},
 											},
 										},
@@ -54,11 +57,12 @@ func (c *cache) AddCluster(node string, cluster *apiv1.Cluster) error {
 					},
 				},
 			},
-		},
+		}
+		resources = append(resources, resource)
 	}
-	clusters := []xdscache.Resource{cl}
 
-	snapshot := xdscache.NewSnapshot("2.0)", nil, clusters, nil, nil, nil)
+	// TODO: update only clusters by using GetSnapshot
+	snapshot := xdscache.NewSnapshot(version, nil, resources, nil, nil, nil)
 	if err := c.snapshotCache.SetSnapshot(node, snapshot); err != nil {
 		return err
 	}

@@ -42,6 +42,9 @@ $(SKAFFOLD): .skaffold-version
 	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat .skaffold-version)/skaffold-$(GOOS)-$(GOARCH)
 	@chmod +x $(SKAFFOLD)
 
+.PHONY: generate
+generate: manifests deepcopy
+
 .PHONY: manifests
 manifests: $(CONTROLLER_GEN)
 	@$(CONTROLLER_GEN) crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/crd/bases output:stdout
