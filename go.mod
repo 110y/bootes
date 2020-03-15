@@ -7,6 +7,7 @@ require (
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1
 	github.com/golang/protobuf v1.3.3
+	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
 	go.uber.org/zap v1.14.0
 	google.golang.org/grpc v1.27.1
