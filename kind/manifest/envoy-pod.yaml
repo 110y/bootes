@@ -4,6 +4,8 @@ kind: Pod
 metadata:
   name: envoy
   namespace: envoy
+  labels:
+    app: envoy
 spec:
   containers:
     - name: envoy

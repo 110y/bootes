@@ -26,7 +26,7 @@ type Cluster struct {
 }
 
 type ClusterSpec struct {
-	WorkloadSelector WorkloadSelector `json:"workloadSelector,omitempty"`
+	WorkloadSelector *WorkloadSelector `json:"workloadSelector,omitempty"`
 	Config           *envoyapi.Cluster
 }
 

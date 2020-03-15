@@ -5,7 +5,6 @@ metadata:
   name: cluster-1
   namespace: envoy
 spec:
-  name: "cluster-1"
   config:
     name: cluster-1
     connect_timeout: 1s
@@ -29,7 +28,10 @@ metadata:
   name: cluster-2
   namespace: envoy
 spec:
-  name: "cluster-2"
+  workloadSelector:
+    labels:
+      app: envoy
+      foo: foo
   config:
     name: cluster-2
     connect_timeout: 1s

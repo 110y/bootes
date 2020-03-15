@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	api "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/k8s/testutils"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
@@ -12,137 +12,33 @@ import (
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/google/go-cmp/cmp"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func TestGetCluster(t *testing.T) {
-	tests := map[string]struct {
-		cluster   *apiv1.Cluster
-		name      string
-		namespace string
-	}{
-		"": {
-			name:      "foo",
-			namespace: "bar",
-		},
-	}
+	ctx := context.Background()
 
 	cli, teardown := testutils.SetupEnvtest(t)
 	defer teardown()
-
-	s := store.New(cli, cli)
-
-	ctx := context.Background()
-	for name, test := range tests {
-		test := test
-		t.Run(name, func(t *testing.T) {
-			_, err := s.GetCluster(ctx, test.name, test.namespace)
-			if err != nil {
-				t.Errorf("failed %s", err)
-			}
-		})
-	}
-}
-
-func TestListClusters(t *testing.T) {
-	tests := map[string]struct {
-		expected *apiv1.ClusterList
-	}{
-		"should list clusters": {
-			expected: &apiv1.ClusterList{
-				Items: []*apiv1.Cluster{
-					&apiv1.Cluster{
-						Spec: apiv1.ClusterSpec{
-							Config: &envoyapi.Cluster{
-								Name:           "cluster-1",
-								ConnectTimeout: &duration.Duration{Seconds: 1},
-								ClusterDiscoveryType: &envoyapi.Cluster_Type{
-									Type: envoyapi.Cluster_LOGICAL_DNS,
-								},
-								LoadAssignment: &envoyapi.ClusterLoadAssignment{
-									ClusterName: "cluster-1",
-									Endpoints: []*endpoint.LocalityLbEndpoints{
-										{
-											LbEndpoints: []*endpoint.LbEndpoint{
-												{
-													HostIdentifier: &endpoint.LbEndpoint_Endpoint{
-														Endpoint: &endpoint.Endpoint{
-															Address: &core.Address{
-																Address: &core.Address_SocketAddress{
-																	SocketAddress: &core.SocketAddress{
-																		Address: "test-1.test.svc.cluster.local",
-																		PortSpecifier: &core.SocketAddress_PortValue{
-																			PortValue: 10000,
-																		},
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					&apiv1.Cluster{
-						Spec: apiv1.ClusterSpec{
-							Config: &envoyapi.Cluster{
-								Name:           "cluster-2",
-								ConnectTimeout: &duration.Duration{Seconds: 1},
-								ClusterDiscoveryType: &envoyapi.Cluster_Type{
-									Type: envoyapi.Cluster_LOGICAL_DNS,
-								},
-								LoadAssignment: &envoyapi.ClusterLoadAssignment{
-									ClusterName: "cluster-2",
-									Endpoints: []*endpoint.LocalityLbEndpoints{
-										{
-											LbEndpoints: []*endpoint.LbEndpoint{
-												{
-													HostIdentifier: &endpoint.LbEndpoint_Endpoint{
-														Endpoint: &endpoint.Endpoint{
-															Address: &core.Address{
-																Address: &core.Address_SocketAddress{
-																	SocketAddress: &core.SocketAddress{
-																		Address: "test-2.test.svc.cluster.local",
-																		PortSpecifier: &core.SocketAddress_PortValue{
-																			PortValue: 10000,
-																		},
-																	},
-																},
-															},
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	cli, teardown := testutils.SetupEnvtest(t)
-	defer teardown()
-
-	ctx := context.Background()
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
 			Object: map[string]interface{}{
-				"kind":       "Cluster",
-				"apiVersion": apiv1.GroupVersion.String(),
+				"kind":       api.ClusterKind,
+				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-cluster-1",
 					"namespace": "test",
 				},
 				"spec": map[string]interface{}{
+					"workloadSelector": map[string]interface{}{
+						"labels": map[string]interface{}{
+							"label-1": "1",
+							"label-2": "2",
+						},
+					},
 					"config": map[string]interface{}{
 						"name":            "cluster-1",
 						"connect_timeout": "1s",
@@ -172,8 +68,8 @@ func TestListClusters(t *testing.T) {
 		},
 		&unstructured.Unstructured{
 			Object: map[string]interface{}{
-				"kind":       "Cluster",
-				"apiVersion": apiv1.GroupVersion.String(),
+				"kind":       api.ClusterKind,
+				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-cluster-2",
 					"namespace": "test",
@@ -216,13 +112,102 @@ func TestListClusters(t *testing.T) {
 
 	s := store.New(cli, cli)
 
+	tests := map[string]struct {
+		expected *api.Cluster
+		name     string
+	}{
+		"should get cluster": {
+			name: "test-cluster-1",
+			expected: &api.Cluster{
+				Spec: api.ClusterSpec{
+					WorkloadSelector: &api.WorkloadSelector{
+						Labels: map[string]string{
+							"label-1": "1",
+							"label-2": "2",
+						},
+					},
+					Config: &envoyapi.Cluster{
+						Name:           "cluster-1",
+						ConnectTimeout: &duration.Duration{Seconds: 1},
+						ClusterDiscoveryType: &envoyapi.Cluster_Type{
+							Type: envoyapi.Cluster_LOGICAL_DNS,
+						},
+						LoadAssignment: &envoyapi.ClusterLoadAssignment{
+							ClusterName: "cluster-1",
+							Endpoints: []*endpoint.LocalityLbEndpoints{
+								{
+									LbEndpoints: []*endpoint.LbEndpoint{
+										{
+											HostIdentifier: &endpoint.LbEndpoint_Endpoint{
+												Endpoint: &endpoint.Endpoint{
+													Address: &core.Address{
+														Address: &core.Address_SocketAddress{
+															SocketAddress: &core.SocketAddress{
+																Address: "test-1.test.svc.cluster.local",
+																PortSpecifier: &core.SocketAddress_PortValue{
+																	PortValue: 10000,
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"should get cluster even though workloadSelector is empty": {
+			name: "test-cluster-2",
+			expected: &api.Cluster{
+				Spec: api.ClusterSpec{
+					Config: &envoyapi.Cluster{
+						Name:           "cluster-2",
+						ConnectTimeout: &duration.Duration{Seconds: 1},
+						ClusterDiscoveryType: &envoyapi.Cluster_Type{
+							Type: envoyapi.Cluster_LOGICAL_DNS,
+						},
+						LoadAssignment: &envoyapi.ClusterLoadAssignment{
+							ClusterName: "cluster-2",
+							Endpoints: []*endpoint.LocalityLbEndpoints{
+								{
+									LbEndpoints: []*endpoint.LbEndpoint{
+										{
+											HostIdentifier: &endpoint.LbEndpoint_Endpoint{
+												Endpoint: &endpoint.Endpoint{
+													Address: &core.Address{
+														Address: &core.Address_SocketAddress{
+															SocketAddress: &core.SocketAddress{
+																Address: "test-2.test.svc.cluster.local",
+																PortSpecifier: &core.SocketAddress_PortValue{
+																	PortValue: 10000,
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
 	for name, test := range tests {
 		test := test
-
 		t.Run(name, func(t *testing.T) {
-			actual, err := s.ListClustersByNamespace(ctx, "test")
+			actual, err := s.GetCluster(ctx, test.name, "test")
 			if err != nil {
-				t.Errorf("failed %s", err)
+				t.Fatalf("error: %s", err)
 			}
 
 			if diff := cmp.Diff(test.expected, actual); diff != "" {
@@ -230,4 +215,325 @@ func TestListClusters(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestListClusters(t *testing.T) {
+	cli, teardown := testutils.SetupEnvtest(t)
+	defer teardown()
+
+	ctx := context.Background()
+
+	fixtures := []*unstructured.Unstructured{
+		&unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"kind":       api.ClusterKind,
+				"apiVersion": api.GroupVersion.String(),
+				"metadata": map[string]interface{}{
+					"name":      "test-cluster-1",
+					"namespace": "test",
+				},
+				"spec": map[string]interface{}{
+					"workloadSelector": map[string]interface{}{
+						"labels": map[string]interface{}{
+							"label-1": "1",
+							"label-2": "2",
+						},
+					},
+					"config": map[string]interface{}{
+						"name":            "cluster-1",
+						"connect_timeout": "1s",
+						"type":            "LOGICAL_DNS",
+						"load_assignment": map[string]interface{}{
+							"cluster_name": "cluster-1",
+							"endpoints": []map[string]interface{}{
+								{
+									"lb_endpoints": []map[string]interface{}{
+										{
+											"endpoint": map[string]interface{}{
+												"address": map[string]interface{}{
+													"socket_address": map[string]interface{}{
+														"address":    "test-1.test.svc.cluster.local",
+														"port_value": "10000",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		&unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"kind":       api.ClusterKind,
+				"apiVersion": api.GroupVersion.String(),
+				"metadata": map[string]interface{}{
+					"name":      "test-cluster-2",
+					"namespace": "test",
+				},
+				"spec": map[string]interface{}{
+					"config": map[string]interface{}{
+						"name":            "cluster-2",
+						"connect_timeout": "1s",
+						"type":            "LOGICAL_DNS",
+						"load_assignment": map[string]interface{}{
+							"cluster_name": "cluster-2",
+							"endpoints": []map[string]interface{}{
+								{
+									"lb_endpoints": []map[string]interface{}{
+										{
+											"endpoint": map[string]interface{}{
+												"address": map[string]interface{}{
+													"socket_address": map[string]interface{}{
+														"address":    "test-2.test.svc.cluster.local",
+														"port_value": "10000",
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, f := range fixtures {
+		if err := cli.Create(ctx, f); err != nil {
+			t.Fatalf("failed to create fixture: %s", err)
+		}
+	}
+
+	s := store.New(cli, cli)
+
+	tests := map[string]struct {
+		expected *api.ClusterList
+	}{
+		"should list clusters": {
+			expected: &api.ClusterList{
+				Items: []*api.Cluster{
+					&api.Cluster{
+						Spec: api.ClusterSpec{
+							WorkloadSelector: &api.WorkloadSelector{
+								Labels: map[string]string{
+									"label-1": "1",
+									"label-2": "2",
+								},
+							},
+							Config: &envoyapi.Cluster{
+								Name:           "cluster-1",
+								ConnectTimeout: &duration.Duration{Seconds: 1},
+								ClusterDiscoveryType: &envoyapi.Cluster_Type{
+									Type: envoyapi.Cluster_LOGICAL_DNS,
+								},
+								LoadAssignment: &envoyapi.ClusterLoadAssignment{
+									ClusterName: "cluster-1",
+									Endpoints: []*endpoint.LocalityLbEndpoints{
+										{
+											LbEndpoints: []*endpoint.LbEndpoint{
+												{
+													HostIdentifier: &endpoint.LbEndpoint_Endpoint{
+														Endpoint: &endpoint.Endpoint{
+															Address: &core.Address{
+																Address: &core.Address_SocketAddress{
+																	SocketAddress: &core.SocketAddress{
+																		Address: "test-1.test.svc.cluster.local",
+																		PortSpecifier: &core.SocketAddress_PortValue{
+																			PortValue: 10000,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					&api.Cluster{
+						Spec: api.ClusterSpec{
+							Config: &envoyapi.Cluster{
+								Name:           "cluster-2",
+								ConnectTimeout: &duration.Duration{Seconds: 1},
+								ClusterDiscoveryType: &envoyapi.Cluster_Type{
+									Type: envoyapi.Cluster_LOGICAL_DNS,
+								},
+								LoadAssignment: &envoyapi.ClusterLoadAssignment{
+									ClusterName: "cluster-2",
+									Endpoints: []*endpoint.LocalityLbEndpoints{
+										{
+											LbEndpoints: []*endpoint.LbEndpoint{
+												{
+													HostIdentifier: &endpoint.LbEndpoint_Endpoint{
+														Endpoint: &endpoint.Endpoint{
+															Address: &core.Address{
+																Address: &core.Address_SocketAddress{
+																	SocketAddress: &core.SocketAddress{
+																		Address: "test-2.test.svc.cluster.local",
+																		PortSpecifier: &core.SocketAddress_PortValue{
+																			PortValue: 10000,
+																		},
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+
+		t.Run(name, func(t *testing.T) {
+			actual, err := s.ListClustersByNamespace(ctx, "test")
+			if err != nil {
+				t.Fatalf("failed %s", err)
+			}
+
+			if diff := cmp.Diff(test.expected, actual); diff != "" {
+				t.Errorf("diff: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListPodsByNamespace(t *testing.T) {
+	cli, teardown := testutils.SetupEnvtest(t)
+	defer teardown()
+
+	ctx := context.Background()
+
+	pod1 := corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod-1",
+			Namespace: "test",
+			Labels: map[string]string{
+				"app":  "envoy",
+				"test": "1",
+			},
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:  "envoy",
+					Image: "envoyproxy/envoy:latest",
+				},
+			},
+		},
+	}
+
+	pod2 := corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "pod-2",
+			Namespace: "test",
+			Labels: map[string]string{
+				"app":  "envoy",
+				"test": "2",
+			},
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{
+				{
+					Name:  "envoy",
+					Image: "envoyproxy/envoy:latest",
+				},
+			},
+		},
+	}
+
+	fixtures := []corev1.Pod{
+		pod1,
+		pod2,
+	}
+
+	for _, f := range fixtures {
+		if err := cli.Create(ctx, &f); err != nil {
+			t.Fatalf("failed to create fixture: %s", err)
+		}
+	}
+
+	tests := map[string]struct {
+		expected *corev1.PodList
+		options  []store.ListOption
+	}{
+		"should list all pods": {
+			expected: &corev1.PodList{
+				Items: fixtures,
+			},
+		},
+		"should list pod1": {
+			expected: &corev1.PodList{
+				Items: []corev1.Pod{pod1},
+			},
+			options: []store.ListOption{
+				store.WithLabelFilter(map[string]string{
+					"app":  "envoy",
+					"test": "1",
+				}),
+			},
+		},
+		"should list all pods with label selectors": {
+			expected: &corev1.PodList{
+				Items: fixtures,
+			},
+			options: []store.ListOption{
+				store.WithLabelFilter(map[string]string{
+					"app": "envoy",
+				}),
+			},
+		},
+	}
+
+	s := store.New(cli, cli)
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			actual, err := s.ListPodsByNamespace(ctx, "test", test.options...)
+			if err != nil {
+				t.Fatalf("failed %s", err)
+			}
+
+			if diff := cmp.Diff(test.expected.Items, actual.Items, cmp.Comparer(podComparer)); diff != "" {
+				t.Errorf("diff: %s", diff)
+			}
+		})
+	}
+}
+
+func podComparer(x, y corev1.Pod) bool {
+	if len(x.Spec.Containers) != len(y.Spec.Containers) {
+		return false
+	}
+
+	for i, xc := range x.Spec.Containers {
+		yc := y.Spec.Containers[i]
+
+		if !cmp.Equal(xc, yc) {
+			return false
+		}
+	}
+
+	return x.Name == y.Name &&
+		x.Namespace == y.Namespace
 }

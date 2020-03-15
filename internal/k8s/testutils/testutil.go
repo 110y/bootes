@@ -10,16 +10,21 @@ import (
 
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
-var scheme = k8sRuntime.NewScheme()
+var s = k8sRuntime.NewScheme()
 
 func SetupEnvtest(t *testing.T) (client.Client, func()) {
 	t.Helper()
 
-	if err := apiv1.AddToScheme(scheme); err != nil {
+	if err := scheme.AddToScheme(s); err != nil {
+		t.Fatalf("failed to create new scheme: %s", err)
+	}
+
+	if err := apiv1.AddToScheme(s); err != nil {
 		t.Fatalf("faileld to add bootes scheme: %s", err)
 	}
 
@@ -34,7 +39,7 @@ func SetupEnvtest(t *testing.T) (client.Client, func()) {
 	}
 
 	cli, err := client.New(cfg, client.Options{
-		Scheme: scheme,
+		Scheme: s,
 	})
 	if err != nil {
 		t.Errorf("faileld to create controller-runtime client: %s", err)

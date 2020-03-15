@@ -2,8 +2,10 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	api "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"
 	"github.com/go-logr/logr"
@@ -34,14 +36,20 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	logger.Info(fmt.Sprintf("Reconciling %s", req.NamespacedName))
 
-	// TODO: use selector
-	_, err := r.store.GetCluster(ctx, req.Name, req.Namespace)
+	opts := []store.ListOption{}
+	cluster, err := r.store.GetCluster(ctx, req.Name, req.Namespace)
 	if err != nil {
-		logger.Error(err, "failed to list clusters")
-		return ctrl.Result{}, err
+		if !errors.Is(err, store.ErrNotFound) {
+			logger.Error(err, "failed to get clusters")
+			return ctrl.Result{}, err
+		}
+	} else {
+		if cluster.Spec.WorkloadSelector != nil {
+			opts = append(opts, store.WithLabelFilter(cluster.Spec.WorkloadSelector.Labels))
+		}
 	}
 
-	pods, err := r.store.ListPodsByNamespace(ctx, req.Namespace)
+	pods, err := r.store.ListPodsByNamespace(ctx, req.Namespace, opts...)
 	if err != nil {
 		logger.Error(err, "failed to list pods")
 		return ctrl.Result{}, err
@@ -54,11 +62,40 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	for _, pod := range pods.Items {
-		if err := r.cache.UpdateClusters(toNodeName(pod.Name, pod.Namespace), version, clusters.Items); err != nil {
+		err := r.cache.UpdateClusters(
+			toNodeName(pod.Name, pod.Namespace),
+			version,
+			filterClusters(clusters.Items, pod.Labels),
+		)
+		if err != nil {
 			logger.Error(err, "failed to update clusuters")
 			return ctrl.Result{}, err
 		}
 	}
 
 	return ctrl.Result{}, nil
+}
+
+func filterClusters(clusters []*api.Cluster, podLabels map[string]string) []*api.Cluster {
+	results := []*api.Cluster{}
+	for _, c := range clusters {
+		if c.Spec.WorkloadSelector == nil {
+			results = append(results, c)
+			continue
+		}
+
+		match := true
+		for key, val := range c.Spec.WorkloadSelector.Labels {
+			v, ok := podLabels[key]
+			if !ok || v != val {
+				match = false
+				break
+			}
+		}
+		if match {
+			results = append(results, c)
+		}
+	}
+
+	return results
 }
