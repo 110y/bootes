@@ -4,7 +4,7 @@ Minimalistic control plane for `Kubernetes` backed `Envoy` data planes.
 
 ## Overview
 
-Bootes is implemented as a Kubernetes Controller and you can specify any Envoy configurations via Custom Resources like below:
+Bootes is implemented as a Kubernetes Controller and you can use any Envoy configurations via Custom Resources like below:
 
 ```yaml
 ---
