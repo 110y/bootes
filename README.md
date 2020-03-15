@@ -1,3 +1,3 @@
 # Bootes
 
-Minimalistic control plane for `Kubernetes` backed `Envoy` mesh.
+Minimalistic control plane for `Kubernetes` backed `Envoy` data planes.

@@ -6,7 +6,7 @@ metadata:
   name: manager-role
 rules:
   - apiGroups:
-      - labolith.com
+      - bootes.io
     resources:
       - clusters
     verbs:
@@ -18,7 +18,7 @@ rules:
       - update
       - watch
   - apiGroups:
-      - labolith.com
+      - bootes.io
     resources:
       - clusters/status
     verbs:

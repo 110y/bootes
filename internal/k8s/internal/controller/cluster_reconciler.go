@@ -32,9 +32,10 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	version := uuid.New().String()
 	logger := r.logger.WithValues("version", version)
 
-	logger.Info(fmt.Sprintf("reconciling: %s", req.NamespacedName))
+	logger.Info(fmt.Sprintf("Reconciling %s", req.NamespacedName))
 
-	clusters, err := r.store.ListClustersByNamespace(ctx, req.Namespace)
+	// TODO: use selector
+	_, err := r.store.GetCluster(ctx, req.Name, req.Namespace)
 	if err != nil {
 		logger.Error(err, "failed to list clusters")
 		return ctrl.Result{}, err
@@ -43,6 +44,12 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	pods, err := r.store.ListPodsByNamespace(ctx, req.Namespace)
 	if err != nil {
 		logger.Error(err, "failed to list pods")
+		return ctrl.Result{}, err
+	}
+
+	clusters, err := r.store.ListClustersByNamespace(ctx, req.Namespace)
+	if err != nil {
+		logger.Error(err, "failed to list clusters")
 		return ctrl.Result{}, err
 	}
 

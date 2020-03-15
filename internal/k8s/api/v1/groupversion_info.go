@@ -1,5 +1,5 @@
 // +kubebuilder:object:generate=true
-// +groupName=labolith.com
+// +groupName=bootes.io
 package v1
 
 import (
@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	GroupVersion = schema.GroupVersion{Group: "labolith.com", Version: "v1"}
+	GroupVersion = schema.GroupVersion{Group: "bootes.io", Version: "v1"}
 
 	SchemeBuilder = &scheme.Builder{GroupVersion: GroupVersion}
 

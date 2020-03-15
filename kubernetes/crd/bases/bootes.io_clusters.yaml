@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.2.5
   creationTimestamp: null
-  name: clusters.labolith.com
+  name: clusters.bootes.io
 spec:
-  group: labolith.com
+  group: bootes.io
   names:
     kind: Cluster
     listKind: ClusterList
@@ -34,8 +34,17 @@ spec:
         spec:
           description: ClusterSpec defines the desired state of Cluster
           properties:
-            name:
-              type: string
+            config:
+              type: object
+            workloadSelector:
+              properties:
+                labels:
+                  additionalProperties:
+                    type: string
+                  type: object
+              required:
+              - labels
+              type: object
           type: object
         status:
           description: ClusterStatus defines the observed state of Cluster. It should
