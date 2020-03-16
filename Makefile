@@ -76,7 +76,7 @@ debug: $(SKAFFOLD)
 
 .PHONY: test
 test:
-	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) go test -race --tags=test ./...
+	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) go test -count=1 -race --tags=test ./...
 
 .PHONY: apply-manifests
 apply-manifests: $(KUBECTL)
