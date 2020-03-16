@@ -17,7 +17,7 @@ import (
 
 var s = k8sRuntime.NewScheme()
 
-func SetupEnvtest(t *testing.T) (client.Client, func()) {
+func SetupEnvtest(t *testing.T) client.Client {
 	t.Helper()
 
 	if err := scheme.AddToScheme(s); err != nil {
@@ -51,9 +51,11 @@ func SetupEnvtest(t *testing.T) (client.Client, func()) {
 		t.FailNow()
 	}
 
-	return cli, func() {
+	t.Cleanup(func() {
 		if err := testEnv.Stop(); err != nil {
 			t.Fatalf("failed to stop test env: %s", err)
 		}
-	}
+	})
+
+	return cli
 }
