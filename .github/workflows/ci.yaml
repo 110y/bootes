@@ -1,0 +1,24 @@
+---
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    container:
+      image: golang:1.14.0-buster
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Dependencies
+        run: make kubebuilder
+
+      - name: Test
+        run: make test
