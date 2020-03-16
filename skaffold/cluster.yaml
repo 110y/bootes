@@ -31,7 +31,6 @@ spec:
   workloadSelector:
     labels:
       app: envoy
-      foo: foo
   config:
     name: cluster-2
     connect_timeout: 1s
