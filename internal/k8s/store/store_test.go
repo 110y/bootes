@@ -20,8 +20,7 @@ import (
 func TestGetCluster(t *testing.T) {
 	ctx := context.Background()
 
-	cli, teardown := testutils.SetupEnvtest(t)
-	defer teardown()
+	cli := testutils.SetupEnvtest(t)
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -218,8 +217,7 @@ func TestGetCluster(t *testing.T) {
 }
 
 func TestListClusters(t *testing.T) {
-	cli, teardown := testutils.SetupEnvtest(t)
-	defer teardown()
+	cli := testutils.SetupEnvtest(t)
 
 	ctx := context.Background()
 
@@ -418,8 +416,7 @@ func TestListClusters(t *testing.T) {
 }
 
 func TestListPodsByNamespace(t *testing.T) {
-	cli, teardown := testutils.SetupEnvtest(t)
-	defer teardown()
+	cli := testutils.SetupEnvtest(t)
 
 	ctx := context.Background()
 
