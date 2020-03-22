@@ -41,10 +41,16 @@ func run(ctx context.Context) int {
 
 	s := store.New(mgr.GetClient(), mgr.GetAPIReader())
 
+	env, err := getEnvironments()
+	if err != nil {
+		sl.Error(err, "failed to load environment variables")
+		return 1
+	}
+
 	xs, err := xds.NewServer(ctx, sc, c, s, xl, &xds.Config{
-		Port:                 8081, // TODO:
-		EnableGRPCChannelz:   true, // TODO:
-		EnableGRPCReflection: true, // TODO:
+		Port:                 env.XDSGRPCPort,
+		EnableGRPCChannelz:   env.XDSGRPCEnableChannelz,
+		EnableGRPCReflection: env.XDSGRPCEnableReflection,
 	})
 	if err != nil {
 		sl.Error(err, "failed to create xds server")
