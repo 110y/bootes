@@ -1,7 +1,7 @@
 package xds
 
 type Config struct {
-	Port                 uint32
+	Port                 int
 	EnableGRPCChannelz   bool
 	EnableGRPCReflection bool
 }

@@ -34,8 +34,7 @@ func NewServer(ctx context.Context, sc xdscache.SnapshotCache, c cache.Cache, s 
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
 	if err != nil {
-		// TODO: wrap
-		return nil, err
+		return nil, fmt.Errorf("failed to listen on port %d :%w", config.Port, err)
 	}
 
 	return &Server{
