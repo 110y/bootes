@@ -7,19 +7,21 @@ import (
 )
 
 var (
-	environmentsMutext = sync.Mutex{}
-	envs               *environments
+	environmentsMu = sync.Mutex{}
+	envs           *environments
 )
 
 type environments struct {
 	XDSGRPCPort             int  `envconfig:"XDS_GRPC_PORT" required:"true"`
-	XDSGRPCEnableChannelz   bool `envconfig:"XDS_GRPC_ENABLE_CHANNELZ" required:"true"`
-	XDSGRPCEnableReflection bool `envconfig:"XDS_GRPC_ENABLE_REFLECTION required:"true"`
+	XDSGRPCEnableChannelz   bool `envconfig:"XDS_GRPC_ENABLE_CHANNELZ"`
+	XDSGRPCEnableReflection bool `envconfig:"XDS_GRPC_ENABLE_REFLECTION"`
+
+	K8SMetricsServerPort int `envconfig:"K8S_METRICS_SERVER_PORT" required:"true"`
 }
 
 func getEnvironments() (*environments, error) {
-	environmentsMutext.Lock()
-	defer environmentsMutext.Unlock()
+	environmentsMu.Lock()
+	defer environmentsMu.Unlock()
 
 	if envs == nil {
 		var e environments

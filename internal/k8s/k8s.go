@@ -14,6 +14,7 @@ import (
 
 type Controller struct {
 	manager manager.Manager
+	logger  logr.Logger
 }
 
 func NewController(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Logger) (*Controller, error) {
@@ -23,7 +24,10 @@ func NewController(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Log
 		return nil, err
 	}
 
-	return &Controller{manager: mgr}, nil
+	return &Controller{
+		manager: mgr,
+		logger:  l,
+	}, nil
 }
 
 func setupClusterReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Logger) error {
@@ -36,7 +40,7 @@ func setupClusterReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l
 	return nil
 }
 
-func (c *Controller) Start() error {
-	// TODO: do not use signal handler directly
-	return c.manager.Start(ctrl.SetupSignalHandler())
+func (c *Controller) Start(stopCh chan struct{}) error {
+	c.logger.Info("starting k8s controller")
+	return c.manager.Start(stopCh)
 }
