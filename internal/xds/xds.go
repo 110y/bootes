@@ -17,6 +17,7 @@ import (
 type Server struct {
 	grpcServer *grpc.Server
 	listener   net.Listener
+	logger     logr.Logger
 }
 
 func NewServer(ctx context.Context, sc xdscache.SnapshotCache, c cache.Cache, s store.Store, l logr.Logger, config *Config) (*Server, error) {
@@ -40,6 +41,7 @@ func NewServer(ctx context.Context, sc xdscache.SnapshotCache, c cache.Cache, s 
 	return &Server{
 		grpcServer: gs,
 		listener:   lis,
+		logger:     l,
 	}, nil
 }
 
@@ -47,7 +49,19 @@ func NewSnapshotCache(l logr.Logger) xdscache.SnapshotCache {
 	return xdscache.NewSnapshotCache(true, xdscache.IDHash{}, newSnapshotCacheLogger(l))
 }
 
-func (s *Server) Start() error {
-	// TODO: wrap error
-	return s.grpcServer.Serve(s.listener)
+func (s *Server) Start(stopCh chan struct{}) error {
+	errCh := make(chan error, 1)
+	go func() {
+		s.logger.Info("starting xds server")
+		errCh <- s.grpcServer.Serve(s.listener)
+	}()
+
+	select {
+	case <-stopCh:
+		s.logger.Info("stopping xds server")
+		s.grpcServer.GracefulStop()
+		return nil
+	case err := <-errCh:
+		return err
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/110y/bootes/internal/k8s"
@@ -25,6 +26,7 @@ func run(ctx context.Context) int {
 			// Unhandleable, something went wrong...
 			panic(fmt.Sprintf("failed to write log:`%s` original error is:`%s`", ferr, err))
 		}
+		return 1
 	}
 
 	sl := l.WithName("server")
@@ -63,31 +65,81 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	errChan := make(chan error, 1)
-
+	xdsErrChan := make(chan error, 1)
+	xdsStopChan := make(chan struct{}, 1)
 	go func() {
-		if err := xs.Start(); err != nil {
-			errChan <- err
-		}
+		xdsErrChan <- xs.Start(xdsStopChan)
 	}()
 
+	k8sErrChan := make(chan error, 1)
+	k8sStopChan := make(chan struct{}, 1)
 	go func() {
-		if err := ctrl.Start(); err != nil {
-			errChan <- err
-		}
+		k8sErrChan <- ctrl.Start(k8sStopChan)
 	}()
 
 	terminationChan := make(chan os.Signal, 1)
 	signal.Notify(terminationChan, syscall.SIGTERM, syscall.SIGINT)
 
-	// TODO:
 	select {
 	case <-terminationChan:
-		// TODO: stop servers
+		sl.Info("stopping servers")
+
+		xdsStopChan <- struct{}{}
+		k8sStopChan <- struct{}{}
+
+		wg := sync.WaitGroup{}
+
+		wg.Add(1)
+		isFailedStopXDSServer := false
+		go func() {
+			defer wg.Done()
+			err := <-xdsErrChan
+			if err != nil {
+				sl.Error(err, "xds grpc server did not stop correctly after termination signal received")
+				isFailedStopXDSServer = true
+			}
+			sl.Info("xds server has stopped")
+		}()
+
+		wg.Add(1)
+		isFailedStopK8SController := false
+		go func() {
+			defer wg.Done()
+			err := <-k8sErrChan
+			if err != nil {
+				sl.Error(err, "k8s controller did not stop correctly after termination signal received")
+				isFailedStopK8SController = true
+			}
+			sl.Info("k8s controller has stopped")
+		}()
+
+		wg.Wait()
+
+		if isFailedStopXDSServer || isFailedStopK8SController {
+			return 1
+		}
+
 		return 0
-	case <-errChan:
-		// TODO:
-		sl.Error(err, "failed to run server")
+
+	case err := <-xdsErrChan:
+		sl.Error(err, "failed to run xds grpc server")
+		k8sStopChan <- struct{}{}
+
+		nerr := <-k8sErrChan
+		if nerr != nil {
+			sl.Error(err, "failed to stop k8s controller after xds grpc server returned error")
+		}
+
+		return 1
+	case err := <-k8sErrChan:
+		sl.Error(err, "failed to run k8s controller")
+		xdsStopChan <- struct{}{}
+
+		nerr := <-xdsErrChan
+		if nerr != nil {
+			sl.Error(err, "failed to stop xds grpc server after k8s controller returned error")
+		}
+
 		return 1
 	}
 }
