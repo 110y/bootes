@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-func NewManager() (manager.Manager, error) {
+func NewManager(c *ManagerConfig) (manager.Manager, error) {
 	s := runtime.NewScheme()
 	if err := scheme.AddToScheme(s); err != nil {
 		return nil, fmt.Errorf("failed to create new scheme: %w", err)
@@ -25,7 +25,8 @@ func NewManager() (manager.Manager, error) {
 	}
 
 	manager, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme: s,
+		Scheme:             s,
+		MetricsBindAddress: fmt.Sprintf(":%d", c.MetricsServerPort),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create manager: %w", err)

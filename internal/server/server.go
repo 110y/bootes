@@ -31,23 +31,25 @@ func run(ctx context.Context) int {
 
 	sl := l.WithName("server")
 
+	env, err := getEnvironments()
+	if err != nil {
+		sl.Error(err, "failed to load environment variables")
+		return 1
+	}
+
 	xl := l.WithName("xds")
 	sc := xds.NewSnapshotCache(xl.WithName("snapshot_cache"))
 	c := cache.New(sc)
 
-	mgr, err := k8s.NewManager()
+	mgr, err := k8s.NewManager(&k8s.ManagerConfig{
+		MetricsServerPort: env.K8SMetricsServerPort,
+	})
 	if err != nil {
 		sl.Error(err, "failed to create k8s manager")
 		return 1
 	}
 
 	s := store.New(mgr.GetClient(), mgr.GetAPIReader())
-
-	env, err := getEnvironments()
-	if err != nil {
-		sl.Error(err, "failed to load environment variables")
-		return 1
-	}
 
 	xs, err := xds.NewServer(ctx, sc, c, s, xl, &xds.Config{
 		Port:                 env.XDSGRPCPort,
