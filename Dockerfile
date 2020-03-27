@@ -1,4 +1,4 @@
-FROM golang:1.14.0-alpine3.11 AS builder
+FROM golang:1.14.1-buster AS builder
 
 ENV GO111MODULE=on
 ENV GOOS=linux
@@ -12,13 +12,9 @@ RUN go mod download
 COPY . .
 RUN go build -o /usr/bin/bootes .
 
-# runtime image
-FROM alpine:3.11.3
+## Rutime
 
+FROM gcr.io/distroless/base:3c213222937de49881c57c476e64138a7809dc54
 COPY --from=builder /usr/bin/bootes /usr/bin/bootes
-RUN apk update
-RUN apk add --no-cache ca-certificates
-
-EXPOSE 8080
 
 CMD ["/usr/bin/bootes"]

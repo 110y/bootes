@@ -12,8 +12,10 @@ spec:
       image: bootes
       env:
         - name: XDS_GRPC_PORT
-          value: "8081"
+          value: '8081'
         - name: XDS_GRPC_ENABLE_CHANNELZ
           value: 'true'
         - name: XDS_GRPC_ENABLE_REFLECTION
           value: 'true'
+        - name: K8S_METRICS_SERVER_PORT
+          value: '4000'
