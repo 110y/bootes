@@ -2,7 +2,7 @@ GOOS   := $(shell go env GOOS)
 GOARCH := $(shell go env GOARCH)
 
 KUBEBUILDER_VERSION := 2.2.0
-KUBEBUILDER_DIR     := $(shell pwd)/kubebuilder
+KUBEBUILDER_DIR     := $(shell pwd)/dev/kubebuilder
 KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
