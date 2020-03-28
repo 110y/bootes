@@ -55,11 +55,11 @@ kind-cluster: $(KIND) $(KUBECTL)
 	@$(KIND) delete cluster --name bootes
 	@$(KIND) create cluster --name bootes --image kindest/node:v${KIND_NODE_VERSION}
 	make kind-image
-	make apply-manifests
+	make kind-apply-manifests
 
 .PHONY: kind-image
 kind-image: $(KIND)
-	@docker build -t 110y/bootes-envoy:latest ./kind/envoy
+	@docker build -t 110y/bootes-envoy:latest ./dev/kind/envoy
 	$(KIND) load docker-image 110y/bootes-envoy:latest --name bootes
 
 .PHONY: dev
@@ -78,9 +78,9 @@ debug: $(SKAFFOLD)
 test:
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) go test -count=1 -race --tags=test ./...
 
-.PHONY: apply-manifests
-apply-manifests: $(KUBECTL)
+.PHONY: kind-apply-manifests
+kind-apply-manifests: $(KUBECTL)
 	@$(KUBECTL) apply -f ./kubernetes/crd/bases/
-	@$(KUBECTL) apply -f ./kind/namespace.yaml
+	@$(KUBECTL) apply -f ./dev/kind/namespace.yaml
 	sleep 15 # wait for namespace booting
-	@$(KUBECTL) apply -f ./kind/manifest/
+	@$(KUBECTL) apply -f ./dev/kind/manifest/
