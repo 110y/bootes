@@ -6,11 +6,13 @@ KUBEBUILDER_DIR     := $(shell pwd)/dev/kubebuilder
 KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
-CONTROLLER_GEN := bin/controller-gen
-TYPE_SCAFFOLD  := bin/type-scaffold
-KIND           := bin/kind
-KUBECTL        := bin/kubectl
-SKAFFOLD       := bin/skaffold
+BIN_DIR := dev/bin
+
+CONTROLLER_GEN := $(BIN_DIR)/controller-gen
+TYPE_SCAFFOLD  := $(BIN_DIR)/type-scaffold
+KIND           := $(BIN_DIR)/kind
+KUBECTL        := $(BIN_DIR)/kubectl
+SKAFFOLD       := $(BIN_DIR)/skaffold
 
 KIND_NODE_VERSION := 1.17.2
 
