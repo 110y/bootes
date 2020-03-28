@@ -7,4 +7,4 @@ build:
 deploy:
   kubectl:
     manifests:
-      - ./skaffold/pod.yaml
+      - ./dev/skaffold/pod.yaml

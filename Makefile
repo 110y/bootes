@@ -35,13 +35,13 @@ $(KIND): go.sum
 	@go build -o $(KIND) sigs.k8s.io/kind
 
 kubectl: $(KUBECTL)
-$(KUBECTL): .kubectl-version
-	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/$(shell cat .kubectl-version)/bin/$(GOOS)/$(GOARCH)/kubectl
+$(KUBECTL): dev/.kubectl-version
+	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/$(shell cat ./dev/.kubectl-version)/bin/$(GOOS)/$(GOARCH)/kubectl
 	@chmod +x $(KUBECTL)
 
 skaffold: $(SKAFFOLD)
-$(SKAFFOLD): .skaffold-version
-	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat .skaffold-version)/skaffold-$(GOOS)-$(GOARCH)
+$(SKAFFOLD): dev/.skaffold-version
+	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat ./dev/.skaffold-version)/skaffold-$(GOOS)-$(GOARCH)
 	@chmod +x $(SKAFFOLD)
 
 # .PHONY: manifests
@@ -68,13 +68,13 @@ kind-image: $(KIND)
 dev: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
 	@$(KUBECTL) config use-context kind-bootes
-	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) dev --filename=./skaffold/skaffold.yaml
+	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) dev --filename=./dev/skaffold/skaffold.yaml
 
 .PHONY: debug
 debug: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
 	@$(KUBECTL) config use-context kind-bootes
-	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) debug --filename=./skaffold/skaffold.yaml
+	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml
 
 .PHONY: test
 test:
