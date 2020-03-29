@@ -79,20 +79,7 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 func filterClusters(clusters []*api.Cluster, podLabels map[string]string) []*api.Cluster {
 	results := []*api.Cluster{}
 	for _, c := range clusters {
-		if c.Spec.WorkloadSelector == nil {
-			results = append(results, c)
-			continue
-		}
-
-		match := true
-		for key, val := range c.Spec.WorkloadSelector.Labels {
-			v, ok := podLabels[key]
-			if !ok || v != val {
-				match = false
-				break
-			}
-		}
-		if match {
+		if matchSelector(c, podLabels) {
 			results = append(results, c)
 		}
 	}

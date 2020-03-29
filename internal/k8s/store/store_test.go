@@ -10,6 +10,11 @@ import (
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
+	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
+	route "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
+	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	"github.com/golang/protobuf/proto"
+	any "github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
@@ -406,6 +411,265 @@ func TestListClusters(t *testing.T) {
 			actual, err := s.ListClustersByNamespace(ctx, "test")
 			if err != nil {
 				t.Fatalf("failed %s", err)
+			}
+
+			if diff := cmp.Diff(test.expected, actual); diff != "" {
+				t.Errorf("diff: %s", diff)
+			}
+		})
+	}
+}
+
+func TestGetListener(t *testing.T) {
+	ctx := context.Background()
+
+	cli := testutils.SetupEnvtest(t)
+
+	fixtures := []*unstructured.Unstructured{
+		&unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"kind":       api.ListenerKind,
+				"apiVersion": api.GroupVersion.String(),
+				"metadata": map[string]interface{}{
+					"name":      "test-listener-1",
+					"namespace": "test",
+				},
+				"spec": map[string]interface{}{
+					"workloadSelector": map[string]interface{}{
+						"labels": map[string]interface{}{
+							"label-1": "1",
+							"label-2": "2",
+						},
+					},
+					"config": map[string]interface{}{
+						"address": map[string]interface{}{
+							"socket_address": map[string]interface{}{
+								"protocol":   "TCP",
+								"address":    "0.0.0.0",
+								"port_value": "10000",
+							},
+						},
+						"filter_chains": []map[string]interface{}{
+							{
+								"filters": []map[string]interface{}{
+									{
+										"name": "envoy.http_connection_manager",
+										"typed_config": map[string]interface{}{
+											"@type":       "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+											"stat_prefix": "ingress_http",
+											"route_config": map[string]interface{}{
+												"name": "route",
+												"virtual_hosts": []map[string]interface{}{
+													{
+														"name":    "service",
+														"domains": []string{"*"},
+														"routes": []map[string]interface{}{
+															{
+																"match": map[string]interface{}{
+																	"prefix": "/",
+																},
+																"route": map[string]interface{}{
+																	"cluster": "upstream",
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		&unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"kind":       api.ListenerKind,
+				"apiVersion": api.GroupVersion.String(),
+				"metadata": map[string]interface{}{
+					"name":      "test-listener-2",
+					"namespace": "test",
+				},
+				"spec": map[string]interface{}{
+					"config": map[string]interface{}{
+						"address": map[string]interface{}{
+							"socket_address": map[string]interface{}{
+								"protocol":   "TCP",
+								"address":    "0.0.0.0",
+								"port_value": "10000",
+							},
+						},
+						"filter_chains": []map[string]interface{}{
+							{
+								"filters": []map[string]interface{}{
+									{
+										"name": "envoy.http_connection_manager",
+										"typed_config": map[string]interface{}{
+											"@type":       "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+											"stat_prefix": "ingress_http",
+											"route_config": map[string]interface{}{
+												"name": "route",
+												"virtual_hosts": []map[string]interface{}{
+													{
+														"name":    "service",
+														"domains": []string{"*"},
+														"routes": []map[string]interface{}{
+															{
+																"match": map[string]interface{}{
+																	"prefix": "/",
+																},
+																"route": map[string]interface{}{
+																	"cluster": "upstream",
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, f := range fixtures {
+		if err := cli.Create(ctx, f); err != nil {
+			t.Fatalf("failed to create fixture: %s", err)
+		}
+	}
+
+	s := store.New(cli, cli)
+
+	cm, err := proto.Marshal(&hcm.HttpConnectionManager{
+		StatPrefix: "ingress_http",
+		RouteSpecifier: &hcm.HttpConnectionManager_RouteConfig{
+			RouteConfig: &envoyapi.RouteConfiguration{
+				Name: "route",
+				VirtualHosts: []*route.VirtualHost{
+					{
+						Name:    "service",
+						Domains: []string{"*"},
+						Routes: []*route.Route{
+							{
+								Match: &route.RouteMatch{
+									PathSpecifier: &route.RouteMatch_Prefix{
+										Prefix: "/",
+									},
+								},
+								Action: &route.Route_Route{
+									Route: &route.RouteAction{
+										ClusterSpecifier: &route.RouteAction_Cluster{
+											Cluster: "upstream",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal fixture proto: %s", err)
+	}
+
+	tests := map[string]struct {
+		expected *api.Listener
+		name     string
+	}{
+		"should get listener": {
+			name: "test-listener-1",
+			expected: &api.Listener{
+				Spec: api.ListenerSpec{
+					WorkloadSelector: &api.WorkloadSelector{
+						Labels: map[string]string{
+							"label-1": "1",
+							"label-2": "2",
+						},
+					},
+					Config: &envoyapi.Listener{
+						Address: &core.Address{
+							Address: &core.Address_SocketAddress{
+								SocketAddress: &core.SocketAddress{
+									Protocol: core.SocketAddress_TCP,
+									Address:  "0.0.0.0",
+									PortSpecifier: &core.SocketAddress_PortValue{
+										PortValue: 10000,
+									},
+								},
+							},
+						},
+						FilterChains: []*envoylistener.FilterChain{
+							{
+								Filters: []*envoylistener.Filter{
+									{
+										Name: "envoy.http_connection_manager",
+										ConfigType: &envoylistener.Filter_TypedConfig{
+											TypedConfig: &any.Any{
+												TypeUrl: "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+												Value:   cm,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"should get cluster even though workloadSelector is empty": {
+			name: "test-listener-2",
+			expected: &api.Listener{
+				Spec: api.ListenerSpec{
+					Config: &envoyapi.Listener{
+						Address: &core.Address{
+							Address: &core.Address_SocketAddress{
+								SocketAddress: &core.SocketAddress{
+									Protocol: core.SocketAddress_TCP,
+									Address:  "0.0.0.0",
+									PortSpecifier: &core.SocketAddress_PortValue{
+										PortValue: 10000,
+									},
+								},
+							},
+						},
+						FilterChains: []*envoylistener.FilterChain{
+							{
+								Filters: []*envoylistener.Filter{
+									{
+										Name: "envoy.http_connection_manager",
+										ConfigType: &envoylistener.Filter_TypedConfig{
+											TypedConfig: &any.Any{
+												TypeUrl: "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
+												Value:   cm,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			actual, err := s.GetListener(ctx, test.name, "test")
+			if err != nil {
+				t.Fatalf("error: %s", err)
 			}
 
 			if diff := cmp.Diff(test.expected, actual); diff != "" {

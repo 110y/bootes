@@ -7,6 +7,8 @@ import (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
+var _ EnvoyResource = &Cluster{}
+
 // ClusterList contains a list of Cluster
 type ClusterList struct {
 	metav1.TypeMeta `json:",inline"`
@@ -32,6 +34,10 @@ type ClusterSpec struct {
 
 type WorkloadSelector struct {
 	Labels map[string]string `json:"labels"`
+}
+
+func (c *Cluster) GetWorkloadSelector() *WorkloadSelector {
+	return c.Spec.WorkloadSelector
 }
 
 func init() {
