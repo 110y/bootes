@@ -40,6 +40,7 @@ type Store interface {
 	GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error)
 	ListClustersByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error)
 	GetListener(ctx context.Context, name, namespace string) (*api.Listener, error)
+	ListListenersByNamespace(ctx context.Context, namespace string) (*api.ListenerList, error)
 	ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error)
 }
 
@@ -144,6 +145,35 @@ func (s *store) GetListener(ctx context.Context, name, namespace string) (*api.L
 	}
 
 	return l, nil
+}
+
+func (s *store) ListListenersByNamespace(ctx context.Context, namespace string) (*api.ListenerList, error) {
+	listeners := &unstructured.UnstructuredList{
+		Object: map[string]interface{}{
+			"kind":       api.ListenerKind,
+			"apiVersion": api.GroupVersion.String(),
+		},
+	}
+	err := s.client.List(ctx, listeners, &client.ListOptions{
+		Namespace: namespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list listeners: %w", err)
+	}
+
+	items := make([]*api.Listener, len(listeners.Items))
+	for i, c := range listeners.Items {
+		listener, err := s.unmarshalListener(c.Object)
+		if err != nil {
+			return nil, err
+		}
+
+		items[i] = listener
+	}
+
+	return &api.ListenerList{
+		Items: items,
+	}, nil
 }
 
 func (s *store) ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error) {
