@@ -14,5 +14,6 @@ var (
 
 	AddToScheme = SchemeBuilder.AddToScheme
 
-	ClusterKind = "Cluster"
+	ClusterKind  = "Cluster"
+	ListenerKind = "Listener"
 )

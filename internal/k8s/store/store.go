@@ -39,6 +39,7 @@ func WithLabelFilter(labels map[string]string) ListOption {
 type Store interface {
 	GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error)
 	ListClustersByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error)
+	GetListener(ctx context.Context, name, namespace string) (*api.Listener, error)
 	ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error)
 }
 
@@ -114,6 +115,35 @@ func (s *store) ListClustersByNamespace(ctx context.Context, namespace string) (
 	return &api.ClusterList{
 		Items: items,
 	}, nil
+}
+
+func (s *store) GetListener(ctx context.Context, name, namespace string) (*api.Listener, error) {
+	key := client.ObjectKey{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	listener := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"kind":       api.ListenerKind,
+			"apiVersion": api.GroupVersion.String(),
+		},
+	}
+
+	if err := s.client.Get(ctx, key, listener); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, ErrNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get cluster: %w", err)
+	}
+
+	l, err := s.unmarshalListener(listener.Object)
+	if err != nil {
+		return nil, err
+	}
+
+	return l, nil
 }
 
 func (s *store) ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error) {
@@ -211,6 +241,56 @@ func (s *store) unmarshalCluster(object map[string]interface{}) (*api.Cluster, e
 }
 
 func (s *store) unmarshalClusterConfig(spec map[string]interface{}) (*envoyapi.Cluster, error) {
+	config, err := unmarshalEnvoyConfig(spec)
+	if err != nil {
+	}
+
+	cluster := &envoyapi.Cluster{}
+	if err := s.unmarshaler.Unmarshal(config, cluster); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
+	}
+
+	return cluster, nil
+}
+
+func (s *store) unmarshalListener(object map[string]interface{}) (*api.Listener, error) {
+	spec, err := extractSpecFromObject(object)
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := s.unmarshalListenerConfig(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	selector, err := unmarshalWorkloadSelector(spec)
+	if err != nil && !errors.Is(err, errWorkloadSelectorNotFound) {
+		return nil, err
+	}
+
+	return &api.Listener{
+		Spec: api.ListenerSpec{
+			WorkloadSelector: selector,
+			Config:           config,
+		},
+	}, nil
+}
+
+func (s *store) unmarshalListenerConfig(spec map[string]interface{}) (*envoyapi.Listener, error) {
+	config, err := unmarshalEnvoyConfig(spec)
+	if err != nil {
+	}
+
+	listener := &envoyapi.Listener{}
+	if err := s.unmarshaler.Unmarshal(config, listener); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
+	}
+
+	return listener, nil
+}
+
+func unmarshalEnvoyConfig(spec map[string]interface{}) (*bytes.Buffer, error) {
 	config, ok := spec["config"]
 	if !ok {
 		return nil, fmt.Errorf("spec.config not found")
@@ -221,10 +301,5 @@ func (s *store) unmarshalClusterConfig(spec map[string]interface{}) (*envoyapi.C
 		return nil, fmt.Errorf("failed to parse spec.config: %w", err)
 	}
 
-	cl := &envoyapi.Cluster{}
-	if err := s.unmarshaler.Unmarshal(bytes.NewBuffer(j), cl); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
-	}
-
-	return cl, nil
+	return bytes.NewBuffer(j), nil
 }
