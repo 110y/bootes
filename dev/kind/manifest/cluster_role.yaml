@@ -9,6 +9,7 @@ rules:
       - bootes.io
     resources:
       - clusters
+      - listeners
     verbs:
       - create
       - delete
@@ -21,6 +22,7 @@ rules:
       - bootes.io
     resources:
       - clusters/status
+      - listeners/status
     verbs:
       - get
       - patch

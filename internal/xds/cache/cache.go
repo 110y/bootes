@@ -8,7 +8,8 @@ import (
 )
 
 type Cache interface {
-	UpdateClusters(node, version string, cluster []*apiv1.Cluster) error
+	UpdateClusters(node, version string, clusters []*apiv1.Cluster) error
+	UpdateListeners(node, version string, listeners []*apiv1.Listener) error
 }
 
 type cache struct {
@@ -24,7 +25,16 @@ func New(snapshotCache xdscache.SnapshotCache) Cache {
 func (c *cache) UpdateClusters(node, version string, clusters []*apiv1.Cluster) error {
 	snapshot := c.newClusterSnapshot(node, version, clusters)
 	if err := c.snapshotCache.SetSnapshot(node, snapshot); err != nil {
-		return fmt.Errorf("failed to set snapshot: %w", err)
+		return fmt.Errorf("failed to update cluster snapshot: %w", err)
+	}
+
+	return nil
+}
+
+func (c *cache) UpdateListeners(node, version string, listeners []*apiv1.Listener) error {
+	snapshot := c.newListenerSnapshot(node, version, listeners)
+	if err := c.snapshotCache.SetSnapshot(node, snapshot); err != nil {
+		return fmt.Errorf("failed to update listener snapshot: %w", err)
 	}
 
 	return nil
@@ -47,6 +57,25 @@ func (c *cache) newClusterSnapshot(node, version string, clusters []*apiv1.Clust
 	runtimes := getResourceFromSnapshot(&s, xdscache.RuntimeType)
 
 	return xdscache.NewSnapshot(version, endpoints, resources, routes, listeners, runtimes)
+}
+
+func (c *cache) newListenerSnapshot(node, version string, listeners []*apiv1.Listener) xdscache.Snapshot {
+	resources := make([]xdscache.Resource, len(listeners))
+	for i, l := range listeners {
+		resources[i] = l.Spec.Config
+	}
+
+	s, err := c.snapshotCache.GetSnapshot(node)
+	if err != nil {
+		return xdscache.NewSnapshot(version, nil, nil, nil, resources, nil)
+	}
+
+	endpoints := getResourceFromSnapshot(&s, xdscache.EndpointType)
+	clusters := getResourceFromSnapshot(&s, xdscache.ClusterType)
+	routes := getResourceFromSnapshot(&s, xdscache.RouteType)
+	runtimes := getResourceFromSnapshot(&s, xdscache.RuntimeType)
+
+	return xdscache.NewSnapshot(version, endpoints, clusters, routes, resources, runtimes)
 }
 
 func getResourceFromSnapshot(snapshot *xdscache.Snapshot, typeURL string) []xdscache.Resource {

@@ -14,21 +14,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-func NewClusterReconciler(s store.Store, c cache.Cache, l logr.Logger) reconcile.Reconciler {
-	return &ClusterReconciler{
+func NewListenerReconciler(s store.Store, c cache.Cache, l logr.Logger) reconcile.Reconciler {
+	return &ListenerReconciler{
 		store:  s,
 		cache:  c,
 		logger: l,
 	}
 }
 
-type ClusterReconciler struct {
+type ListenerReconciler struct {
 	store  store.Store
 	cache  cache.Cache
 	logger logr.Logger
 }
 
-func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ListenerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 
 	version := uuid.New().String()
@@ -37,15 +37,15 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	logger.Info(fmt.Sprintf("Reconciling %s", req.NamespacedName))
 
 	opts := []store.ListOption{}
-	cluster, err := r.store.GetCluster(ctx, req.Name, req.Namespace)
+	listener, err := r.store.GetListener(ctx, req.Name, req.Namespace)
 	if err != nil {
 		if !errors.Is(err, store.ErrNotFound) {
-			logger.Error(err, "failed to get cluster")
+			logger.Error(err, "failed to get listener")
 			return ctrl.Result{}, err
 		}
 	} else {
-		if cluster.Spec.WorkloadSelector != nil {
-			opts = append(opts, store.WithLabelFilter(cluster.Spec.WorkloadSelector.Labels))
+		if listener.Spec.WorkloadSelector != nil {
+			opts = append(opts, store.WithLabelFilter(listener.Spec.WorkloadSelector.Labels))
 		}
 	}
 
@@ -55,17 +55,17 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	clusters, err := r.store.ListClustersByNamespace(ctx, req.Namespace)
+	listeners, err := r.store.ListListenersByNamespace(ctx, req.Namespace)
 	if err != nil {
 		logger.Error(err, "failed to list clusters")
 		return ctrl.Result{}, err
 	}
 
 	for _, pod := range pods.Items {
-		err := r.cache.UpdateClusters(
+		err := r.cache.UpdateListeners(
 			toNodeName(pod.Name, pod.Namespace),
 			version,
-			filterClusters(clusters.Items, pod.Labels),
+			filterListeners(listeners.Items, pod.Labels),
 		)
 		if err != nil {
 			logger.Error(err, "failed to update clusuters")
@@ -76,11 +76,11 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 
-func filterClusters(clusters []*api.Cluster, podLabels map[string]string) []*api.Cluster {
-	results := []*api.Cluster{}
-	for _, c := range clusters {
-		if matchSelector(c, podLabels) {
-			results = append(results, c)
+func filterListeners(listeners []*api.Listener, podLabels map[string]string) []*api.Listener {
+	results := []*api.Listener{}
+	for _, l := range listeners {
+		if matchSelector(l, podLabels) {
+			results = append(results, l)
 		}
 	}
 

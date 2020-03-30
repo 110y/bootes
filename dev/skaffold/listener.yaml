@@ -1,0 +1,34 @@
+---
+apiVersion: bootes.io/v1
+kind: Listener
+metadata:
+  name: listener-1
+  namespace: envoy
+spec:
+  config:
+    name: listener-1
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 5000
+    filter_chains:
+      - filters:
+          - name: envoy.http_connection_manager
+            typed_config:
+              "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
+              stat_prefix: ingress_http
+              route_config:
+                name: service
+                virtual_hosts:
+                  - name: service
+                    domains:
+                      - '*'
+                    routes:
+                      - name: cluster-1
+                        route:
+                          cluster: cluster-1
+                        match:
+                          prefix: "/"
+              http_filters:
+                - name: envoy.router

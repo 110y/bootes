@@ -9,37 +9,33 @@ import (
 
 var _ EnvoyResource = &Cluster{}
 
-// ClusterList contains a list of Cluster
-type ClusterList struct {
+// ListenerList contains a list of Listener
+type ListenerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []*Cluster `json:"items"`
+	Items           []*Listener `json:"items"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Cluster is the Schema for the clusters API
+// Listener is the Schema for the listeners API
 // +k8s:openapi-gen=true
-type Cluster struct {
+type Listener struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec ClusterSpec
+	Spec ListenerSpec
 }
 
-type ClusterSpec struct {
+type ListenerSpec struct {
 	WorkloadSelector *WorkloadSelector `json:"workloadSelector,omitempty"`
-	Config           *envoyapi.Cluster
+	Config           *envoyapi.Listener
 }
 
-type WorkloadSelector struct {
-	Labels map[string]string `json:"labels"`
-}
-
-func (c *Cluster) GetWorkloadSelector() *WorkloadSelector {
-	return c.Spec.WorkloadSelector
+func (l *Listener) GetWorkloadSelector() *WorkloadSelector {
+	return l.Spec.WorkloadSelector
 }
 
 func init() {
-	SchemeBuilder.Register(&Cluster{}, &ClusterList{})
+	SchemeBuilder.Register(&Listener{}, &ListenerList{})
 }
