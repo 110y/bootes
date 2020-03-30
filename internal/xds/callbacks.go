@@ -30,7 +30,7 @@ func (c *callbacks) OnStreamClosed(int64) {
 }
 
 func (c *callbacks) OnStreamRequest(streamID int64, req *api.DiscoveryRequest) error {
-	c.logger.Info(fmt.Sprintf("OnStreamRequest. version:`%s`, node: %s", req.VersionInfo, req.GetNode().GetId()))
+	c.logger.Info(fmt.Sprintf("OnStreamRequest. version:%s, node: %s", req.VersionInfo, req.GetNode().GetId()))
 
 	// TODO: get clusters by namespace
 

@@ -24,6 +24,10 @@ func NewController(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Log
 		return nil, err
 	}
 
+	if err := setupListenerReconciler(mgr, s, c, l.WithName("listener_reconciler")); err != nil {
+		return nil, err
+	}
+
 	return &Controller{
 		manager: mgr,
 		logger:  l,
@@ -35,6 +39,16 @@ func setupClusterReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l
 
 	if err := ctrl.NewControllerManagedBy(mgr).For(&apiv1.Cluster{}).Complete(cr); err != nil {
 		return fmt.Errorf("failed to setup cluster reconciler: %s", err)
+	}
+
+	return nil
+}
+
+func setupListenerReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Logger) error {
+	lr := controller.NewListenerReconciler(s, c, l)
+
+	if err := ctrl.NewControllerManagedBy(mgr).For(&apiv1.Listener{}).Complete(lr); err != nil {
+		return fmt.Errorf("failed to setup listener reconciler: %s", err)
 	}
 
 	return nil

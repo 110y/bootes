@@ -7,6 +7,8 @@ import (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
+var _ EnvoyResource = &Cluster{}
+
 // ListenerList contains a list of Listener
 type ListenerList struct {
 	metav1.TypeMeta `json:",inline"`
@@ -28,6 +30,10 @@ type Listener struct {
 type ListenerSpec struct {
 	WorkloadSelector *WorkloadSelector `json:"workloadSelector,omitempty"`
 	Config           *envoyapi.Listener
+}
+
+func (l *Listener) GetWorkloadSelector() *WorkloadSelector {
+	return l.Spec.WorkloadSelector
 }
 
 func init() {
