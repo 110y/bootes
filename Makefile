@@ -15,6 +15,7 @@ KUBECTL        := $(BIN_DIR)/kubectl
 SKAFFOLD       := $(BIN_DIR)/skaffold
 
 KIND_NODE_VERSION := 1.17.2
+KIND_CLUSTER_NAME := bootes
 
 .PHONY: kubebuilder
 kubebuilder: $(KUBEBUILDER)
@@ -54,26 +55,26 @@ deepcopy: $(CONTROLLER_GEN)
 
 .PHONY: kind-cluster
 kind-cluster: $(KIND) $(KUBECTL)
-	@$(KIND) delete cluster --name bootes
-	@$(KIND) create cluster --name bootes --image kindest/node:v${KIND_NODE_VERSION}
+	@$(KIND) delete cluster --name $(KIND_CLUSTER_NAME)
+	@$(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image kindest/node:v${KIND_NODE_VERSION}
 	make kind-image
 	make kind-apply-manifests
 
 .PHONY: kind-image
 kind-image: $(KIND)
 	@docker build -t 110y/bootes-envoy:latest ./dev/kind/envoy
-	$(KIND) load docker-image 110y/bootes-envoy:latest --name bootes
+	$(KIND) load docker-image 110y/bootes-envoy:latest --name $(KIND_CLUSTER_NAME)
 
 .PHONY: dev
 dev: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
-	@$(KUBECTL) config use-context kind-bootes
+	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
 	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) dev --filename=./dev/skaffold/skaffold.yaml
 
 .PHONY: debug
 debug: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
-	@$(KUBECTL) config use-context kind-bootes
+	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
 	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml
 
 .PHONY: test
