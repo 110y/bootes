@@ -7,7 +7,7 @@ import (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-var _ EnvoyResource = &Cluster{}
+var _ EnvoyResource = (*Listener)(nil)
 
 // ListenerList contains a list of Listener
 type ListenerList struct {

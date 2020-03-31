@@ -11,7 +11,7 @@ import (
 	"github.com/go-logr/logr"
 )
 
-var _ server.Callbacks = &callbacks{}
+var _ server.Callbacks = (*callbacks)(nil)
 
 type callbacks struct {
 	cache  cache.Cache

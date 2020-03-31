@@ -11,6 +11,8 @@ spec:
     - name: bootes
       image: bootes
       env:
+        - name: GOTRACEBACK # to enable `skaffold debug` to recognize runtime
+          value: 'single'
         - name: XDS_GRPC_PORT
           value: '8081'
         - name: XDS_GRPC_ENABLE_CHANNELZ
