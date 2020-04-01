@@ -13,6 +13,7 @@ TYPE_SCAFFOLD  := $(BIN_DIR)/type-scaffold
 KIND           := $(BIN_DIR)/kind
 KUBECTL        := $(BIN_DIR)/kubectl
 SKAFFOLD       := $(BIN_DIR)/skaffold
+DELVE          := $(BIN_DIR)/dlv
 
 KIND_NODE_VERSION := 1.17.2
 KIND_CLUSTER_NAME := bootes
@@ -45,6 +46,10 @@ $(SKAFFOLD): dev/.skaffold-version
 	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat ./dev/.skaffold-version)/skaffold-$(GOOS)-$(GOARCH)
 	@chmod +x $(SKAFFOLD)
 
+delve: $(DELVE)
+$(DELVE): go.sum
+	@go build -o $(DELVE) github.com/go-delve/delve/cmd/dlv
+
 # .PHONY: manifests
 # manifests: $(CONTROLLER_GEN)
 #         @$(CONTROLLER_GEN) crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/crd/bases output:stdout
@@ -65,17 +70,21 @@ kind-image: $(KIND)
 	@docker build -t 110y/bootes-envoy:latest ./dev/kind/envoy
 	$(KIND) load docker-image 110y/bootes-envoy:latest --name $(KIND_CLUSTER_NAME)
 
-.PHONY: dev
-dev: $(SKAFFOLD)
-	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
+.PHONY: run
+run: $(SKAFFOLD)
+	# NOTE: since skaffold is using kind and kubectl from PATH directly, override PATH to use project local kind executable.
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
 	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) dev --filename=./dev/skaffold/skaffold.yaml
 
-.PHONY: debug
-debug: $(SKAFFOLD)
-	# NOTE: since skaffold is using kind from PATH directly, override PATH to use project local kind executable.
+.PHONY: run-debug
+run-debug: $(SKAFFOLD)
+	# NOTE: since skaffold is using kind and kubectl from PATH directly, override PATH to use project local kind executable.
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
-	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml
+	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml --port-forward=true
+
+.PHONY: debug
+debug: $(DELVE)
+	@$(DELVE) connect --init=./dev/delve/init localhost:56268
 
 .PHONY: test
 test:

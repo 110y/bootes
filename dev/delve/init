@@ -1,0 +1,1 @@
+config substitute-path /go/src/github.com/110y/bootes .
