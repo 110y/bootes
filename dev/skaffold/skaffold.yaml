@@ -4,6 +4,9 @@ kind: Config
 build:
   artifacts:
     - image: bootes
+      docker:
+        dockerfile: ./Dockerfile
+
 deploy:
   kubectl:
     manifests:
