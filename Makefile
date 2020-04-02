@@ -74,13 +74,13 @@ kind-image: $(KIND)
 run: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind and kubectl from PATH directly, override PATH to use project local kind executable.
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
-	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) dev --filename=./dev/skaffold/skaffold.yaml
+	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) dev --filename=./dev/skaffold/skaffold.yaml
 
 .PHONY: run-debug
 run-debug: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind and kubectl from PATH directly, override PATH to use project local kind executable.
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
-	@PATH=$${PWD}/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml --port-forward=true
+	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml --port-forward=true
 
 .PHONY: debug
 debug: $(DELVE)
