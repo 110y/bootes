@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	api "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"
 	"github.com/go-logr/logr"
@@ -63,9 +62,9 @@ func (r *ListenerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	for _, pod := range pods.Items {
 		err := r.cache.UpdateListeners(
-			toNodeName(pod.Name, pod.Namespace),
+			store.ToNodeName(pod.Name, pod.Namespace),
 			version,
-			filterListeners(listeners.Items, pod.Labels),
+			store.FilterListenersByLabels(listeners.Items, pod.Labels),
 		)
 		if err != nil {
 			logger.Error(err, "failed to update clusuters")
@@ -74,15 +73,4 @@ func (r *ListenerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func filterListeners(listeners []*api.Listener, podLabels map[string]string) []*api.Listener {
-	results := []*api.Listener{}
-	for _, l := range listeners {
-		if matchSelector(l, podLabels) {
-			results = append(results, l)
-		}
-	}
-
-	return results
 }

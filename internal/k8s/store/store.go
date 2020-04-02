@@ -41,6 +41,7 @@ type Store interface {
 	ListClustersByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error)
 	GetListener(ctx context.Context, name, namespace string) (*api.Listener, error)
 	ListListenersByNamespace(ctx context.Context, namespace string) (*api.ListenerList, error)
+	GetPod(ctx context.Context, name, namespace string) (*corev1.Pod, error)
 	ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error)
 }
 
@@ -174,6 +175,24 @@ func (s *store) ListListenersByNamespace(ctx context.Context, namespace string) 
 	return &api.ListenerList{
 		Items: items,
 	}, nil
+}
+
+func (s *store) GetPod(ctx context.Context, name, namespace string) (*corev1.Pod, error) {
+	key := client.ObjectKey{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	var pod corev1.Pod
+	if err := s.reader.Get(ctx, key, &pod); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, ErrNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get pod: %w", err)
+	}
+
+	return &pod, nil
 }
 
 func (s *store) ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error) {

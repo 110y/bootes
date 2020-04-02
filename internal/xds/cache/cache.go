@@ -7,7 +7,11 @@ import (
 	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache"
 )
 
+var _ Cache = (*cache)(nil)
+
 type Cache interface {
+	IsCachedNode(node string) bool
+	UpdateAllResources(node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener) error
 	UpdateClusters(node, version string, clusters []*apiv1.Cluster) error
 	UpdateListeners(node, version string, listeners []*apiv1.Listener) error
 }
@@ -20,6 +24,45 @@ func New(snapshotCache xdscache.SnapshotCache) Cache {
 	return &cache{
 		snapshotCache: snapshotCache,
 	}
+}
+
+func (c *cache) IsCachedNode(node string) bool {
+	_, err := c.snapshotCache.GetSnapshot(node)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func (c *cache) UpdateAllResources(node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener) error {
+	cr := make([]xdscache.Resource, len(clusters))
+	for i, c := range clusters {
+		cr[i] = c.Spec.Config
+	}
+
+	lr := make([]xdscache.Resource, len(listeners))
+	for i, l := range listeners {
+		lr[i] = l.Spec.Config
+	}
+
+	var s xdscache.Snapshot
+	oldSnapshot, err := c.snapshotCache.GetSnapshot(node)
+	if err != nil {
+		s = xdscache.NewSnapshot(version, nil, cr, nil, lr, nil)
+	} else {
+		endpoints := getResourceFromSnapshot(&oldSnapshot, xdscache.EndpointType)
+		routes := getResourceFromSnapshot(&oldSnapshot, xdscache.RouteType)
+		runtimes := getResourceFromSnapshot(&oldSnapshot, xdscache.RuntimeType)
+
+		xdscache.NewSnapshot(version, endpoints, cr, routes, lr, runtimes)
+	}
+
+	if err := c.snapshotCache.SetSnapshot(node, s); err != nil {
+		return fmt.Errorf("failed to update all resources snapshot: %w", err)
+	}
+
+	return nil
 }
 
 func (c *cache) UpdateClusters(node, version string, clusters []*apiv1.Cluster) error {

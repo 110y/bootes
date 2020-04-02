@@ -2,12 +2,15 @@ package xds
 
 import (
 	"context"
+	"fmt"
 
+	api "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"
-	api "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/server"
 	"github.com/go-logr/logr"
+	"github.com/google/uuid"
 )
 
 var _ server.Callbacks = (*callbacks)(nil)
@@ -42,46 +45,100 @@ func (c *callbacks) OnStreamOpen(_ context.Context, streamID int64, _ string) er
 }
 
 func (c *callbacks) OnStreamClosed(streamID int64) {
-	streamLogger(c.loggerOnStreamOpen, streamID).Info("closed")
+	streamLogger(c.loggerOnStreamClosed, streamID).Info("closed")
 }
 
-func (c *callbacks) OnStreamRequest(streamID int64, req *api.DiscoveryRequest) error {
-	streamRequestLog(c.loggerOnStreamRequest, streamID, req)
+func (c *callbacks) OnStreamRequest(streamID int64, req *envoyapi.DiscoveryRequest) error {
+	version := uuid.New().String()
+	logger := requestLogger(streamLogger(c.loggerOnStreamRequest, streamID), req).WithValues("version", version)
 
-	// TODO: get cache by node
+	ctx := context.Background()
 
-	// TODO: get clusters by namespace
+	node := req.GetNode().GetId()
+	if node == "" {
+		logger.Info("empty node id passed")
+		return fmt.Errorf("empty node id")
+	}
 
-	// TODO: filter clusters by label selector
+	if c.cache.IsCachedNode(node) {
+		// NOTE: use cache, no need to fetch resources again.
+		return nil
+	}
 
-	// TODO: save clusters to cache
+	name, namespace := store.ToNamespacedName(node)
 
-	// TODO: set cache to node
+	pod, err := c.store.GetPod(ctx, name, namespace)
+	if err != nil {
+		logger.Info("pod not found by node id")
+		return fmt.Errorf("pod not found by node id")
+	}
+
+	clusters, err := c.listClustersByNodeAndLabels(ctx, namespace, pod.Labels)
+	if err != nil {
+		msg := "failed to list cluster configurations"
+		logger.Error(err, msg)
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+
+	listeners, err := c.listListenersByNodeAndLabels(ctx, namespace, pod.Labels)
+	if err != nil {
+		msg := "failed to list listener configurations"
+		logger.Error(err, msg)
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+
+	if err := c.cache.UpdateAllResources(node, version, clusters, listeners); err != nil {
+		msg := "failed to update resources"
+		logger.Error(err, msg)
+		return fmt.Errorf("%s: %w", msg, err)
+	}
 
 	return nil
 }
 
-func (c *callbacks) OnStreamResponse(streamID int64, req *api.DiscoveryRequest, _ *api.DiscoveryResponse) {
+func (c *callbacks) OnStreamResponse(streamID int64, req *envoyapi.DiscoveryRequest, _ *envoyapi.DiscoveryResponse) {
 	streamRequestLog(c.loggerOnStreamResponse, streamID, req)
 }
 
-func (c callbacks) OnFetchRequest(_ context.Context, req *api.DiscoveryRequest) error {
+func (c callbacks) OnFetchRequest(_ context.Context, req *envoyapi.DiscoveryRequest) error {
 	requestLog(c.loggerOnFetchRequest, req)
 	return nil
 }
 
-func (c *callbacks) OnFetchResponse(req *api.DiscoveryRequest, _ *api.DiscoveryResponse) {
+func (c *callbacks) OnFetchResponse(req *envoyapi.DiscoveryRequest, _ *envoyapi.DiscoveryResponse) {
 	requestLog(c.loggerOnFetchResponse, req)
+}
+
+func (c *callbacks) listClustersByNodeAndLabels(ctx context.Context, namespace string, labels map[string]string) ([]*api.Cluster, error) {
+	clusters, err := c.store.ListClustersByNamespace(ctx, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	return store.FilterClustersByLabels(clusters.Items, labels), nil
+}
+
+func (c *callbacks) listListenersByNodeAndLabels(ctx context.Context, namespace string, labels map[string]string) ([]*api.Listener, error) {
+	listeners, err := c.store.ListListenersByNamespace(ctx, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	return store.FilterListenersByLabels(listeners.Items, labels), nil
 }
 
 func streamLogger(l logr.Logger, id int64) logr.Logger {
 	return l.WithValues("stream", id)
 }
 
-func streamRequestLog(l logr.Logger, id int64, req *api.DiscoveryRequest) {
+func streamRequestLog(l logr.Logger, id int64, req *envoyapi.DiscoveryRequest) {
 	requestLog(streamLogger(l, id), req)
 }
 
-func requestLog(l logr.Logger, req *api.DiscoveryRequest) {
-	l.Info("request", "version", req.VersionInfo, "node", req.GetNode().GetId())
+func requestLogger(l logr.Logger, req *envoyapi.DiscoveryRequest) logr.Logger {
+	return l.WithValues("current_version", req.VersionInfo, "node", req.GetNode().GetId())
+}
+
+func requestLog(l logr.Logger, req *envoyapi.DiscoveryRequest) {
+	requestLogger(l, req).Info("request")
 }
