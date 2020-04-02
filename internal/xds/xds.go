@@ -21,11 +21,7 @@ type Server struct {
 }
 
 func NewServer(ctx context.Context, sc xdscache.SnapshotCache, c cache.Cache, s store.Store, l logr.Logger, config *Config) (*Server, error) {
-	srv := server.NewServer(ctx, sc, &callbacks{
-		cache:  c,
-		store:  s,
-		logger: l.WithName("callbacks"),
-	})
+	srv := server.NewServer(ctx, sc, newCallbacks(c, s, l.WithName("callbacks")))
 
 	gc := &xdsgrpc.Config{
 		EnableChannelz:   config.EnableGRPCChannelz,

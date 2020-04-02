@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	api "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"
 	"github.com/go-logr/logr"
@@ -63,9 +62,9 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	for _, pod := range pods.Items {
 		err := r.cache.UpdateClusters(
-			toNodeName(pod.Name, pod.Namespace),
+			store.ToNodeName(pod.Name, pod.Namespace),
 			version,
-			filterClusters(clusters.Items, pod.Labels),
+			store.FilterClustersByLabels(clusters.Items, pod.Labels),
 		)
 		if err != nil {
 			logger.Error(err, "failed to update clusuters")
@@ -74,15 +73,4 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	return ctrl.Result{}, nil
-}
-
-func filterClusters(clusters []*api.Cluster, podLabels map[string]string) []*api.Cluster {
-	results := []*api.Cluster{}
-	for _, c := range clusters {
-		if matchSelector(c, podLabels) {
-			results = append(results, c)
-		}
-	}
-
-	return results
 }
