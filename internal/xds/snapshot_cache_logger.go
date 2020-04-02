@@ -7,6 +7,8 @@ import (
 	"github.com/go-logr/logr"
 )
 
+var _ log.Logger = (*snapshotCacheLogger)(nil)
+
 func newSnapshotCacheLogger(l logr.Logger) log.Logger {
 	return &snapshotCacheLogger{
 		debugf: l.WithName("debug"),

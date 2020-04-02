@@ -2,7 +2,6 @@ package xds
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"
@@ -14,23 +13,42 @@ import (
 var _ server.Callbacks = (*callbacks)(nil)
 
 type callbacks struct {
-	cache  cache.Cache
-	store  store.Store
-	logger logr.Logger
+	cache                  cache.Cache
+	store                  store.Store
+	loggerOnStreamOpen     logr.Logger
+	loggerOnStreamClosed   logr.Logger
+	loggerOnStreamRequest  logr.Logger
+	loggerOnStreamResponse logr.Logger
+	loggerOnFetchRequest   logr.Logger
+	loggerOnFetchResponse  logr.Logger
 }
 
-func (c *callbacks) OnStreamOpen(context.Context, int64, string) error {
-	fmt.Println("OnStreamOpen")
+func newCallbacks(c cache.Cache, s store.Store, l logr.Logger) *callbacks {
+	return &callbacks{
+		cache:                  c,
+		store:                  s,
+		loggerOnStreamOpen:     l.WithName("on_stream_open"),
+		loggerOnStreamClosed:   l.WithName("on_stream_closed"),
+		loggerOnStreamRequest:  l.WithName("on_stream_request"),
+		loggerOnStreamResponse: l.WithName("on_stream_response"),
+		loggerOnFetchRequest:   l.WithName("on_fetch_request"),
+		loggerOnFetchResponse:  l.WithName("on_fetch_response"),
+	}
+}
 
+func (c *callbacks) OnStreamOpen(_ context.Context, streamID int64, _ string) error {
+	streamLogger(c.loggerOnStreamOpen, streamID).Info("open")
 	return nil
 }
 
-func (c *callbacks) OnStreamClosed(int64) {
-	fmt.Println("OnStreamClosed")
+func (c *callbacks) OnStreamClosed(streamID int64) {
+	streamLogger(c.loggerOnStreamOpen, streamID).Info("closed")
 }
 
 func (c *callbacks) OnStreamRequest(streamID int64, req *api.DiscoveryRequest) error {
-	c.logger.Info(fmt.Sprintf("OnStreamRequest. version:%s, node: %s", req.VersionInfo, req.GetNode().GetId()))
+	streamRequestLog(c.loggerOnStreamRequest, streamID, req)
+
+	// TODO: get cache by node
 
 	// TODO: get clusters by namespace
 
@@ -43,15 +61,27 @@ func (c *callbacks) OnStreamRequest(streamID int64, req *api.DiscoveryRequest) e
 	return nil
 }
 
-func (c *callbacks) OnStreamResponse(streamID int64, req *api.DiscoveryRequest, res *api.DiscoveryResponse) {
-	c.logger.Info(fmt.Sprintf("OnStreamResponse. version:`%s`, node: %s", req.VersionInfo, req.GetNode().GetId()))
+func (c *callbacks) OnStreamResponse(streamID int64, req *api.DiscoveryRequest, _ *api.DiscoveryResponse) {
+	streamRequestLog(c.loggerOnStreamResponse, streamID, req)
 }
 
-func (c callbacks) OnFetchRequest(context.Context, *api.DiscoveryRequest) error {
-	fmt.Println("OnFetchRequest")
+func (c callbacks) OnFetchRequest(_ context.Context, req *api.DiscoveryRequest) error {
+	requestLog(c.loggerOnFetchRequest, req)
 	return nil
 }
 
-func (c *callbacks) OnFetchResponse(*api.DiscoveryRequest, *api.DiscoveryResponse) {
-	fmt.Println("OnFetchResponse")
+func (c *callbacks) OnFetchResponse(req *api.DiscoveryRequest, _ *api.DiscoveryResponse) {
+	requestLog(c.loggerOnFetchResponse, req)
+}
+
+func streamLogger(l logr.Logger, id int64) logr.Logger {
+	return l.WithValues("stream", id)
+}
+
+func streamRequestLog(l logr.Logger, id int64, req *api.DiscoveryRequest) {
+	requestLog(streamLogger(l, id), req)
+}
+
+func requestLog(l logr.Logger, req *api.DiscoveryRequest) {
+	l.Info("request", "version", req.VersionInfo, "node", req.GetNode().GetId())
 }
