@@ -55,7 +55,7 @@ func (s *Server) Start(stopCh chan struct{}) error {
 	select {
 	case <-stopCh:
 		s.logger.Info("stopping xds server")
-		s.grpcServer.GracefulStop()
+		s.grpcServer.Stop()
 		return nil
 	case err := <-errCh:
 		return err

@@ -6,6 +6,7 @@ import (
 
 	api "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
+	"github.com/110y/bootes/internal/observer/trace"
 	"github.com/110y/bootes/internal/xds/cache"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/envoyproxy/go-control-plane/pkg/server"
@@ -49,10 +50,11 @@ func (c *callbacks) OnStreamClosed(streamID int64) {
 }
 
 func (c *callbacks) OnStreamRequest(streamID int64, req *envoyapi.DiscoveryRequest) error {
+	ctx, span := trace.NewSpan(context.Background(), "Callbacks.OnStreamRequest")
+	defer span.End()
+
 	version := uuid.New().String()
 	logger := requestLogger(streamLogger(c.loggerOnStreamRequest, streamID), req).WithValues("version", version)
-
-	ctx := context.Background()
 
 	node := req.GetNode().GetId()
 	if node == "" {
@@ -87,7 +89,7 @@ func (c *callbacks) OnStreamRequest(streamID int64, req *envoyapi.DiscoveryReque
 		return fmt.Errorf("%s: %w", msg, err)
 	}
 
-	if err := c.cache.UpdateAllResources(node, version, clusters, listeners); err != nil {
+	if err := c.cache.UpdateAllResources(ctx, node, version, clusters, listeners); err != nil {
 		msg := "failed to update resources"
 		logger.Error(err, msg)
 		return fmt.Errorf("%s: %w", msg, err)

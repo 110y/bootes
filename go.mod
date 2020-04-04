@@ -12,6 +12,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	go.opentelemetry.io/otel v0.4.2
+	go.opentelemetry.io/otel/exporters/trace/jaeger v0.4.2
 	go.uber.org/zap v1.14.0
 	google.golang.org/grpc v1.27.1
 	k8s.io/api v0.17.3

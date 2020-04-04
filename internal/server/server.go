@@ -10,6 +10,7 @@ import (
 
 	"github.com/110y/bootes/internal/k8s"
 	"github.com/110y/bootes/internal/k8s/store"
+	"github.com/110y/bootes/internal/observer/trace"
 	"github.com/110y/bootes/internal/xds"
 	"github.com/110y/bootes/internal/xds/cache"
 )
@@ -36,6 +37,18 @@ func run(ctx context.Context) int {
 		sl.Error(err, "failed to load environment variables")
 		return 1
 	}
+
+	flush, err := trace.Initialize(&trace.Config{
+		UseStdout:      env.TraceUseStdout,
+		UseJaeger:      env.TraceUseJaeger,
+		JaegerEndpoint: env.TraceJaegerEndpoint,
+		Logger:         l.WithName("trace"),
+	})
+	if err != nil {
+		sl.Error(err, "failed to initialize tracer")
+		return 1
+	}
+	defer flush()
 
 	xl := l.WithName("xds")
 	sc := xds.NewSnapshotCache(xl.WithName("snapshot_cache"))
@@ -121,6 +134,7 @@ func run(ctx context.Context) int {
 			return 1
 		}
 
+		sl.Info("succeeded to shut down server")
 		return 0
 
 	case err := <-xdsErrChan:

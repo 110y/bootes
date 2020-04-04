@@ -1,9 +1,11 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/observer/trace"
 	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache"
 )
 
@@ -11,9 +13,9 @@ var _ Cache = (*cache)(nil)
 
 type Cache interface {
 	IsCachedNode(node string) bool
-	UpdateAllResources(node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener) error
-	UpdateClusters(node, version string, clusters []*apiv1.Cluster) error
-	UpdateListeners(node, version string, listeners []*apiv1.Listener) error
+	UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener) error
+	UpdateClusters(ctx context.Context, node, version string, clusters []*apiv1.Cluster) error
+	UpdateListeners(ctx context.Context, node, version string, listeners []*apiv1.Listener) error
 }
 
 type cache struct {
@@ -35,7 +37,10 @@ func (c *cache) IsCachedNode(node string) bool {
 	return true
 }
 
-func (c *cache) UpdateAllResources(node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener) error {
+func (c *cache) UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener) error {
+	ctx, span := trace.NewSpan(ctx, "Cache.UpdateAllResources")
+	defer span.End()
+
 	cr := make([]xdscache.Resource, len(clusters))
 	for i, c := range clusters {
 		cr[i] = c.Spec.Config
@@ -65,7 +70,10 @@ func (c *cache) UpdateAllResources(node, version string, clusters []*apiv1.Clust
 	return nil
 }
 
-func (c *cache) UpdateClusters(node, version string, clusters []*apiv1.Cluster) error {
+func (c *cache) UpdateClusters(ctx context.Context, node, version string, clusters []*apiv1.Cluster) error {
+	ctx, span := trace.NewSpan(ctx, "Cache.UpdateClusters")
+	defer span.End()
+
 	snapshot := c.newClusterSnapshot(node, version, clusters)
 	if err := c.snapshotCache.SetSnapshot(node, snapshot); err != nil {
 		return fmt.Errorf("failed to update cluster snapshot: %w", err)
@@ -74,7 +82,10 @@ func (c *cache) UpdateClusters(node, version string, clusters []*apiv1.Cluster) 
 	return nil
 }
 
-func (c *cache) UpdateListeners(node, version string, listeners []*apiv1.Listener) error {
+func (c *cache) UpdateListeners(ctx context.Context, node, version string, listeners []*apiv1.Listener) error {
+	ctx, span := trace.NewSpan(ctx, "Cache.UpdateListeners")
+	defer span.End()
+
 	snapshot := c.newListenerSnapshot(node, version, listeners)
 	if err := c.snapshotCache.SetSnapshot(node, snapshot); err != nil {
 		return fmt.Errorf("failed to update listener snapshot: %w", err)

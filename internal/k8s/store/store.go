@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	api "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/observer/trace"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/golang/protobuf/jsonpb"
 	corev1 "k8s.io/api/core/v1"
@@ -62,6 +63,9 @@ func New(c client.Client, reader client.Reader) Store {
 }
 
 func (s *store) GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.GetCluster")
+	defer span.End()
+
 	key := client.ObjectKey{
 		Name:      name,
 		Namespace: namespace,
@@ -91,6 +95,9 @@ func (s *store) GetCluster(ctx context.Context, name, namespace string) (*api.Cl
 }
 
 func (s *store) ListClustersByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.ListClustersByNamespace")
+	defer span.End()
+
 	clusters := &unstructured.UnstructuredList{
 		Object: map[string]interface{}{
 			"kind":       api.ClusterKind,
@@ -120,6 +127,9 @@ func (s *store) ListClustersByNamespace(ctx context.Context, namespace string) (
 }
 
 func (s *store) GetListener(ctx context.Context, name, namespace string) (*api.Listener, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.GetListener")
+	defer span.End()
+
 	key := client.ObjectKey{
 		Name:      name,
 		Namespace: namespace,
@@ -149,6 +159,9 @@ func (s *store) GetListener(ctx context.Context, name, namespace string) (*api.L
 }
 
 func (s *store) ListListenersByNamespace(ctx context.Context, namespace string) (*api.ListenerList, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.ListListenersByNamespace")
+	defer span.End()
+
 	listeners := &unstructured.UnstructuredList{
 		Object: map[string]interface{}{
 			"kind":       api.ListenerKind,
@@ -178,6 +191,9 @@ func (s *store) ListListenersByNamespace(ctx context.Context, namespace string) 
 }
 
 func (s *store) GetPod(ctx context.Context, name, namespace string) (*corev1.Pod, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.GetPod")
+	defer span.End()
+
 	key := client.ObjectKey{
 		Name:      name,
 		Namespace: namespace,
@@ -196,6 +212,9 @@ func (s *store) GetPod(ctx context.Context, name, namespace string) (*corev1.Pod
 }
 
 func (s *store) ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.ListPodsByNamespace")
+	defer span.End()
+
 	opt := &listOption{}
 	for _, o := range options {
 		o(opt)
