@@ -21,3 +21,9 @@ spec:
           value: 'true'
         - name: K8S_METRICS_SERVER_PORT
           value: '4000'
+        - name: TRACE_USE_STDOUT
+          value: 'true'
+        - name: TRACE_USE_JAEGER
+          value: 'true'
+        - name: TRACE_JAEGER_ENDPOINT
+          value: 'http://jaeger.jaeger.svc.cluster.local:14268/api/traces'

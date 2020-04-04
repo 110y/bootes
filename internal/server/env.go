@@ -17,6 +17,10 @@ type environments struct {
 	XDSGRPCEnableReflection bool `envconfig:"XDS_GRPC_ENABLE_REFLECTION"`
 
 	K8SMetricsServerPort int `envconfig:"K8S_METRICS_SERVER_PORT" required:"true"`
+
+	TraceUseStdout      bool   `envconfig:"TRACE_USE_STDOUT"`
+	TraceUseJaeger      bool   `envconfig:"TRACE_USE_JAEGER"`
+	TraceJaegerEndpoint string `envconfig:"TRACE_JAEGER_ENDPOINT"`
 }
 
 func getEnvironments() (*environments, error) {

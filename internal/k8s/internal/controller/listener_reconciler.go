@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/110y/bootes/internal/k8s/store"
+	"github.com/110y/bootes/internal/observer/trace"
 	"github.com/110y/bootes/internal/xds/cache"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
@@ -28,7 +29,8 @@ type ListenerReconciler struct {
 }
 
 func (r *ListenerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+	ctx, span := trace.NewSpan(context.Background(), "ListenerReconciler.Reconcile")
+	defer span.End()
 
 	version := uuid.New().String()
 	logger := r.logger.WithValues("version", version)
@@ -62,6 +64,7 @@ func (r *ListenerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	for _, pod := range pods.Items {
 		err := r.cache.UpdateListeners(
+			ctx,
 			store.ToNodeName(pod.Name, pod.Namespace),
 			version,
 			store.FilterListenersByLabels(listeners.Items, pod.Labels),
