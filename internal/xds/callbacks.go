@@ -9,7 +9,7 @@ import (
 	"github.com/110y/bootes/internal/observer/trace"
 	"github.com/110y/bootes/internal/xds/cache"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	"github.com/envoyproxy/go-control-plane/pkg/server"
+	server "github.com/envoyproxy/go-control-plane/pkg/server/v2"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 )
