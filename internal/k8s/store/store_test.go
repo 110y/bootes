@@ -221,7 +221,7 @@ func TestGetCluster(t *testing.T) {
 	}
 }
 
-func TestListClusters(t *testing.T) {
+func TestListClustersByNamespace(t *testing.T) {
 	cli := testutils.SetupEnvtest(t)
 
 	ctx := context.Background()
@@ -679,7 +679,7 @@ func TestGetListener(t *testing.T) {
 	}
 }
 
-func TestListListeners(t *testing.T) {
+func TestListListenersByNamespace(t *testing.T) {
 	cli := testutils.SetupEnvtest(t)
 
 	ctx := context.Background()
@@ -927,6 +927,239 @@ func TestListListeners(t *testing.T) {
 
 		t.Run(name, func(t *testing.T) {
 			actual, err := s.ListListenersByNamespace(ctx, "test")
+			if err != nil {
+				t.Fatalf("failed %s", err)
+			}
+
+			if diff := cmp.Diff(test.expected, actual); diff != "" {
+				t.Errorf("diff: %s", diff)
+			}
+		})
+	}
+}
+
+func TestGetRoute(t *testing.T) {
+	ctx := context.Background()
+
+	cli := testutils.SetupEnvtest(t)
+
+	fixtures := []*unstructured.Unstructured{
+		&unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"kind":       api.RouteKind,
+				"apiVersion": api.GroupVersion.String(),
+				"metadata": map[string]interface{}{
+					"name":      "test-route-1",
+					"namespace": "test",
+				},
+				"spec": map[string]interface{}{
+					"workloadSelector": map[string]interface{}{
+						"labels": map[string]interface{}{
+							"label-1": "1",
+							"label-2": "2",
+						},
+					},
+					"config": map[string]interface{}{
+						"name": "route",
+						"virtual_hosts": []map[string]interface{}{
+							{
+								"name":    "service",
+								"domains": []string{"*"},
+								"routes": []map[string]interface{}{
+									{
+
+										"name": "cluster-1",
+										"route": map[string]interface{}{
+											"cluster": "cluster-1",
+										},
+										"match": map[string]interface{}{
+											"prefix": "/",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, f := range fixtures {
+		if err := cli.Create(ctx, f); err != nil {
+			t.Fatalf("failed to create fixture: %s", err)
+		}
+	}
+
+	s := store.New(cli, cli)
+
+	tests := map[string]struct {
+		expected *api.Route
+		name     string
+	}{
+		"should get route": {
+			name: "test-route-1",
+			expected: &api.Route{
+				Spec: api.RouteSpec{
+					WorkloadSelector: &api.WorkloadSelector{
+						Labels: map[string]string{
+							"label-1": "1",
+							"label-2": "2",
+						},
+					},
+					Config: &envoyapi.RouteConfiguration{
+						Name: "route",
+						VirtualHosts: []*route.VirtualHost{
+							&route.VirtualHost{
+								Name:    "service",
+								Domains: []string{"*"},
+								Routes: []*route.Route{
+									{
+										Name: "cluster-1",
+										Match: &route.RouteMatch{
+											PathSpecifier: &route.RouteMatch_Prefix{
+												Prefix: "/",
+											},
+										},
+										Action: &route.Route_Route{
+											Route: &route.RouteAction{
+												ClusterSpecifier: &route.RouteAction_Cluster{
+													Cluster: "cluster-1",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+		t.Run(name, func(t *testing.T) {
+			actual, err := s.GetRoute(ctx, test.name, "test")
+			if err != nil {
+				t.Fatalf("error: %s", err)
+			}
+
+			if diff := cmp.Diff(test.expected, actual); diff != "" {
+				t.Errorf("diff: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListRoutesByNamespace(t *testing.T) {
+	cli := testutils.SetupEnvtest(t)
+
+	ctx := context.Background()
+
+	fixtures := []*unstructured.Unstructured{
+		&unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"kind":       api.RouteKind,
+				"apiVersion": api.GroupVersion.String(),
+				"metadata": map[string]interface{}{
+					"name":      "test-route-1",
+					"namespace": "test",
+				},
+				"spec": map[string]interface{}{
+					"workloadSelector": map[string]interface{}{
+						"labels": map[string]interface{}{
+							"label-1": "1",
+							"label-2": "2",
+						},
+					},
+					"config": map[string]interface{}{
+						"name": "route",
+						"virtual_hosts": []map[string]interface{}{
+							{
+								"name":    "service",
+								"domains": []string{"*"},
+								"routes": []map[string]interface{}{
+									{
+
+										"name": "cluster-1",
+										"route": map[string]interface{}{
+											"cluster": "cluster-1",
+										},
+										"match": map[string]interface{}{
+											"prefix": "/",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, f := range fixtures {
+		if err := cli.Create(ctx, f); err != nil {
+			t.Fatalf("failed to create fixture: %s", err)
+		}
+	}
+
+	s := store.New(cli, cli)
+
+	tests := map[string]struct {
+		expected *api.RouteList
+	}{
+		"should list clusters": {
+			expected: &api.RouteList{
+				Items: []*api.Route{
+					&api.Route{
+						Spec: api.RouteSpec{
+							WorkloadSelector: &api.WorkloadSelector{
+								Labels: map[string]string{
+									"label-1": "1",
+									"label-2": "2",
+								},
+							},
+							Config: &envoyapi.RouteConfiguration{
+								Name: "route",
+								VirtualHosts: []*route.VirtualHost{
+									&route.VirtualHost{
+										Name:    "service",
+										Domains: []string{"*"},
+										Routes: []*route.Route{
+											{
+												Name: "cluster-1",
+												Match: &route.RouteMatch{
+													PathSpecifier: &route.RouteMatch_Prefix{
+														Prefix: "/",
+													},
+												},
+												Action: &route.Route_Route{
+													Route: &route.RouteAction{
+														ClusterSpecifier: &route.RouteAction_Cluster{
+															Cluster: "cluster-1",
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for name, test := range tests {
+		test := test
+
+		t.Run(name, func(t *testing.T) {
+			actual, err := s.ListRoutesByNamespace(ctx, "test")
 			if err != nil {
 				t.Fatalf("failed %s", err)
 			}

@@ -14,6 +14,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+var _ reconcile.Reconciler = (*ListenerReconciler)(nil)
+
 func NewListenerReconciler(s store.Store, c cache.Cache, l logr.Logger) reconcile.Reconciler {
 	return &ListenerReconciler{
 		store:  s,
@@ -58,7 +60,7 @@ func (r *ListenerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	listeners, err := r.store.ListListenersByNamespace(ctx, req.Namespace)
 	if err != nil {
-		logger.Error(err, "failed to list clusters")
+		logger.Error(err, "failed to list listeners")
 		return ctrl.Result{}, err
 	}
 

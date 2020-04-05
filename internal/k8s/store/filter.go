@@ -26,6 +26,17 @@ func FilterListenersByLabels(listeners []*api.Listener, labels map[string]string
 	return results
 }
 
+func FilterRoutesByLabels(routes []*api.Route, labels map[string]string) []*api.Route {
+	results := []*api.Route{}
+	for _, r := range routes {
+		if matchSelector(r, labels) {
+			results = append(results, r)
+		}
+	}
+
+	return results
+}
+
 func matchSelector(resource api.EnvoyResource, labels map[string]string) bool {
 	ws := resource.GetWorkloadSelector()
 	if ws == nil {
