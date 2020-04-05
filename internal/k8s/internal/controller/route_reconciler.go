@@ -14,24 +14,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-var _ reconcile.Reconciler = (*ClusterReconciler)(nil)
+var _ reconcile.Reconciler = (*RouteReconciler)(nil)
 
-func NewClusterReconciler(s store.Store, c cache.Cache, l logr.Logger) reconcile.Reconciler {
-	return &ClusterReconciler{
+func NewRouteReconciler(s store.Store, c cache.Cache, l logr.Logger) reconcile.Reconciler {
+	return &RouteReconciler{
 		store:  s,
 		cache:  c,
 		logger: l,
 	}
 }
 
-type ClusterReconciler struct {
+type RouteReconciler struct {
 	store  store.Store
 	cache  cache.Cache
 	logger logr.Logger
 }
 
-func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx, span := trace.NewSpan(context.Background(), "ClusterReconciler.Reconcile")
+func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+	ctx, span := trace.NewSpan(context.Background(), "RouteReconciler.Reconcile")
 	defer span.End()
 
 	version := uuid.New().String()
@@ -40,15 +40,15 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	logger.Info(fmt.Sprintf("Reconciling %s", req.NamespacedName))
 
 	opts := []store.ListOption{}
-	cluster, err := r.store.GetCluster(ctx, req.Name, req.Namespace)
+	route, err := r.store.GetRoute(ctx, req.Name, req.Namespace)
 	if err != nil {
 		if !errors.Is(err, store.ErrNotFound) {
-			logger.Error(err, "failed to get cluster")
+			logger.Error(err, "failed to get route")
 			return ctrl.Result{}, err
 		}
 	} else {
-		if cluster.Spec.WorkloadSelector != nil {
-			opts = append(opts, store.WithLabelFilter(cluster.Spec.WorkloadSelector.Labels))
+		if route.Spec.WorkloadSelector != nil {
+			opts = append(opts, store.WithLabelFilter(route.Spec.WorkloadSelector.Labels))
 		}
 	}
 
@@ -58,18 +58,18 @@ func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	clusters, err := r.store.ListClustersByNamespace(ctx, req.Namespace)
+	routes, err := r.store.ListRoutesByNamespace(ctx, req.Namespace)
 	if err != nil {
-		logger.Error(err, "failed to list clusters")
+		logger.Error(err, "failed to list routes")
 		return ctrl.Result{}, err
 	}
 
 	for _, pod := range pods.Items {
-		err := r.cache.UpdateClusters(
+		err := r.cache.UpdateRoutes(
 			ctx,
 			store.ToNodeName(pod.Name, pod.Namespace),
 			version,
-			store.FilterClustersByLabels(clusters.Items, pod.Labels),
+			store.FilterRoutesByLabels(routes.Items, pod.Labels),
 		)
 		if err != nil {
 			logger.Error(err, "failed to update clusuters")

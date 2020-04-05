@@ -32,3 +32,12 @@ spec:
 ```
 
 By applying this example resource, Bootes sends one cluster configuration named `cluster-1` to connected Envoys.
+
+## Supported Resources
+
+- [x] Cluster
+- [x] Listener
+- [x] Route
+- [ ] VirtualHost
+- [ ] Endpoint
+- [ ] Runtime

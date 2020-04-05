@@ -37,11 +37,15 @@ func WithLabelFilter(labels map[string]string) ListOption {
 	}
 }
 
+var _ Store = (*store)(nil)
+
 type Store interface {
 	GetCluster(ctx context.Context, name, namespace string) (*api.Cluster, error)
 	ListClustersByNamespace(ctx context.Context, namespace string) (*api.ClusterList, error)
 	GetListener(ctx context.Context, name, namespace string) (*api.Listener, error)
 	ListListenersByNamespace(ctx context.Context, namespace string) (*api.ListenerList, error)
+	GetRoute(ctx context.Context, name, namespace string) (*api.Route, error)
+	ListRoutesByNamespace(ctx context.Context, namespace string) (*api.RouteList, error)
 	GetPod(ctx context.Context, name, namespace string) (*corev1.Pod, error)
 	ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error)
 }
@@ -147,7 +151,7 @@ func (s *store) GetListener(ctx context.Context, name, namespace string) (*api.L
 			return nil, ErrNotFound
 		}
 
-		return nil, fmt.Errorf("failed to get cluster: %w", err)
+		return nil, fmt.Errorf("failed to get route: %w", err)
 	}
 
 	l, err := s.unmarshalListener(listener.Object)
@@ -186,6 +190,70 @@ func (s *store) ListListenersByNamespace(ctx context.Context, namespace string) 
 	}
 
 	return &api.ListenerList{
+		Items: items,
+	}, nil
+}
+
+func (s *store) GetRoute(ctx context.Context, name, namespace string) (*api.Route, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.GetRoute")
+	defer span.End()
+
+	key := client.ObjectKey{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	route := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"kind":       api.RouteKind,
+			"apiVersion": api.GroupVersion.String(),
+		},
+	}
+
+	if err := s.client.Get(ctx, key, route); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, ErrNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get route: %w", err)
+	}
+
+	r, err := s.unmarshalRoute(route.Object)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
+}
+
+func (s *store) ListRoutesByNamespace(ctx context.Context, namespace string) (*api.RouteList, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.ListRoutesByNamespace")
+	defer span.End()
+
+	routes := &unstructured.UnstructuredList{
+		Object: map[string]interface{}{
+			"kind":       api.RouteKind,
+			"apiVersion": api.GroupVersion.String(),
+		},
+	}
+	err := s.client.List(ctx, routes, &client.ListOptions{
+		Namespace: namespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list routes: %w", err)
+	}
+
+	items := make([]*api.Route, len(routes.Items))
+	for i, c := range routes.Items {
+		route, err := s.unmarshalRoute(c.Object)
+		if err != nil {
+			return nil, err
+		}
+
+		items[i] = route
+	}
+
+	return &api.RouteList{
 		Items: items,
 	}, nil
 }
@@ -311,6 +379,7 @@ func (s *store) unmarshalCluster(object map[string]interface{}) (*api.Cluster, e
 func (s *store) unmarshalClusterConfig(spec map[string]interface{}) (*envoyapi.Cluster, error) {
 	config, err := unmarshalEnvoyConfig(spec)
 	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
 	}
 
 	cluster := &envoyapi.Cluster{}
@@ -348,6 +417,7 @@ func (s *store) unmarshalListener(object map[string]interface{}) (*api.Listener,
 func (s *store) unmarshalListenerConfig(spec map[string]interface{}) (*envoyapi.Listener, error) {
 	config, err := unmarshalEnvoyConfig(spec)
 	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
 	}
 
 	listener := &envoyapi.Listener{}
@@ -356,6 +426,44 @@ func (s *store) unmarshalListenerConfig(spec map[string]interface{}) (*envoyapi.
 	}
 
 	return listener, nil
+}
+
+func (s *store) unmarshalRoute(object map[string]interface{}) (*api.Route, error) {
+	spec, err := extractSpecFromObject(object)
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := s.unmarshalRouteConfig(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	selector, err := unmarshalWorkloadSelector(spec)
+	if err != nil && !errors.Is(err, errWorkloadSelectorNotFound) {
+		return nil, err
+	}
+
+	return &api.Route{
+		Spec: api.RouteSpec{
+			WorkloadSelector: selector,
+			Config:           config,
+		},
+	}, nil
+}
+
+func (s *store) unmarshalRouteConfig(spec map[string]interface{}) (*envoyapi.RouteConfiguration, error) {
+	config, err := unmarshalEnvoyConfig(spec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
+	}
+
+	route := &envoyapi.RouteConfiguration{}
+	if err := s.unmarshaler.Unmarshal(config, route); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
+	}
+
+	return route, nil
 }
 
 func unmarshalEnvoyConfig(spec map[string]interface{}) (*bytes.Buffer, error) {

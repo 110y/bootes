@@ -16,4 +16,5 @@ var (
 
 	ClusterKind  = "Cluster"
 	ListenerKind = "Listener"
+	RouteKind    = "Route"
 )

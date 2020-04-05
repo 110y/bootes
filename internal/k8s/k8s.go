@@ -28,6 +28,10 @@ func NewController(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Log
 		return nil, err
 	}
 
+	if err := setupRouteReconciler(mgr, s, c, l.WithName("route_reconciler")); err != nil {
+		return nil, err
+	}
+
 	return &Controller{
 		manager: mgr,
 		logger:  l,
@@ -49,6 +53,16 @@ func setupListenerReconciler(mgr manager.Manager, s store.Store, c cache.Cache, 
 
 	if err := ctrl.NewControllerManagedBy(mgr).For(&apiv1.Listener{}).Complete(lr); err != nil {
 		return fmt.Errorf("failed to setup listener reconciler: %s", err)
+	}
+
+	return nil
+}
+
+func setupRouteReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Logger) error {
+	rr := controller.NewRouteReconciler(s, c, l)
+
+	if err := ctrl.NewControllerManagedBy(mgr).For(&apiv1.Route{}).Complete(rr); err != nil {
+		return fmt.Errorf("failed to setup route reconciler: %s", err)
 	}
 
 	return nil

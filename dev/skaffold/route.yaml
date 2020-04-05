@@ -1,0 +1,19 @@
+---
+apiVersion: bootes.io/v1
+kind: Route
+metadata:
+  name: route-1
+  namespace: envoy
+spec:
+  config:
+    name: route-1
+    virtual_hosts:
+      - name: service
+        domains:
+          - '*'
+        routes:
+          - name: cluster-1
+            route:
+              cluster: cluster-1
+            match:
+              prefix: "/"

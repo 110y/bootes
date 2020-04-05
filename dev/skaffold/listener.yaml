@@ -18,17 +18,9 @@ spec:
             typed_config:
               "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
               stat_prefix: ingress_http
-              route_config:
-                name: service
-                virtual_hosts:
-                  - name: service
-                    domains:
-                      - '*'
-                    routes:
-                      - name: cluster-1
-                        route:
-                          cluster: cluster-1
-                        match:
-                          prefix: "/"
+              rds:
+                route_config_name: route-1
+                config_source:
+                  ads: {}
               http_filters:
                 - name: envoy.router

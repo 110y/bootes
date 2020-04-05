@@ -10,6 +10,7 @@ rules:
     resources:
       - clusters
       - listeners
+      - routes
     verbs:
       - create
       - delete
@@ -23,6 +24,7 @@ rules:
     resources:
       - clusters/status
       - listeners/status
+      - routes/status
     verbs:
       - get
       - patch

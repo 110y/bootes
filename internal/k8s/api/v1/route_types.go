@@ -7,35 +7,35 @@ import (
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-var _ EnvoyResource = (*Cluster)(nil)
+var _ EnvoyResource = (*Route)(nil)
 
-// ClusterList contains a list of Cluster
-type ClusterList struct {
+// RouteList contains a list of Route
+type RouteList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []*Cluster `json:"items"`
+	Items           []*Route `json:"items"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// Cluster is the Schema for the clusters API
+// Route is the Schema for the routes API
 // +k8s:openapi-gen=true
-type Cluster struct {
+type Route struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec ClusterSpec
+	Spec RouteSpec
 }
 
-type ClusterSpec struct {
+type RouteSpec struct {
 	WorkloadSelector *WorkloadSelector `json:"workloadSelector,omitempty"`
-	Config           *envoyapi.Cluster
+	Config           *envoyapi.RouteConfiguration
 }
 
-func (c *Cluster) GetWorkloadSelector() *WorkloadSelector {
+func (c *Route) GetWorkloadSelector() *WorkloadSelector {
 	return c.Spec.WorkloadSelector
 }
 
 func init() {
-	SchemeBuilder.Register(&Cluster{}, &ClusterList{})
+	SchemeBuilder.Register(&Route{}, &RouteList{})
 }
