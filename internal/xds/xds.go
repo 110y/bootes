@@ -8,8 +8,8 @@ import (
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"
 	xdsgrpc "github.com/110y/bootes/internal/xds/internal/grpc"
-	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache"
-	"github.com/envoyproxy/go-control-plane/pkg/server"
+	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache/v2"
+	server "github.com/envoyproxy/go-control-plane/pkg/server/v2"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
 )
