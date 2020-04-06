@@ -3,6 +3,7 @@ module github.com/110y/bootes
 go 1.14
 
 require (
+	github.com/GoogleContainerTools/kpt v0.17.0
 	github.com/envoyproxy/go-control-plane v0.9.5
 	github.com/go-delve/delve v1.4.0
 	github.com/go-logr/logr v0.1.0
