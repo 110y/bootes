@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 RUN go build -o /usr/bin/bootes .
 
-## Rutime
+## Runtime
 
 FROM gcr.io/distroless/base:3c213222937de49881c57c476e64138a7809dc54
 COPY --from=builder /usr/bin/bootes /usr/bin/bootes
