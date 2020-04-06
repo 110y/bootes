@@ -15,7 +15,7 @@ var _ Cache = (*cache)(nil)
 
 type Cache interface {
 	IsCachedNode(node string) bool
-	UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener) error
+	UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener, routes []*apiv1.Route) error
 	UpdateClusters(ctx context.Context, node, version string, clusters []*apiv1.Cluster) error
 	UpdateListeners(ctx context.Context, node, version string, listeners []*apiv1.Listener) error
 	UpdateRoutes(ctx context.Context, node, version string, routes []*apiv1.Route) error
@@ -40,7 +40,7 @@ func (c *cache) IsCachedNode(node string) bool {
 	return true
 }
 
-func (c *cache) UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener) error {
+func (c *cache) UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener, routes []*apiv1.Route) error {
 	ctx, span := trace.NewSpan(ctx, "Cache.UpdateAllResources")
 	defer span.End()
 
@@ -54,16 +54,20 @@ func (c *cache) UpdateAllResources(ctx context.Context, node, version string, cl
 		lr[i] = l.Spec.Config
 	}
 
+	rr := make([]types.Resource, len(routes))
+	for i, r := range routes {
+		rr[i] = r.Spec.Config
+	}
+
 	var s xdscache.Snapshot
 	oldSnapshot, err := c.snapshotCache.GetSnapshot(node)
 	if err != nil {
-		s = xdscache.NewSnapshot(version, nil, cr, nil, lr, nil)
+		s = xdscache.NewSnapshot(version, nil, cr, rr, lr, nil)
 	} else {
 		endpoints := getResourceFromSnapshot(&oldSnapshot, resource.EndpointType)
-		routes := getResourceFromSnapshot(&oldSnapshot, resource.RouteType)
 		runtimes := getResourceFromSnapshot(&oldSnapshot, resource.RuntimeType)
 
-		xdscache.NewSnapshot(version, endpoints, cr, routes, lr, runtimes)
+		xdscache.NewSnapshot(version, endpoints, cr, rr, lr, runtimes)
 	}
 
 	if err := c.snapshotCache.SetSnapshot(node, s); err != nil {

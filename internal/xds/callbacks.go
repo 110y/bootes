@@ -89,7 +89,14 @@ func (c *callbacks) OnStreamRequest(streamID int64, req *envoyapi.DiscoveryReque
 		return fmt.Errorf("%s: %w", msg, err)
 	}
 
-	if err := c.cache.UpdateAllResources(ctx, node, version, clusters, listeners); err != nil {
+	routes, err := c.listRoutesByNodeAndLabels(ctx, namespace, pod.Labels)
+	if err != nil {
+		msg := "failed to list route configurations"
+		logger.Error(err, msg)
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+
+	if err := c.cache.UpdateAllResources(ctx, node, version, clusters, listeners, routes); err != nil {
 		msg := "failed to update resources"
 		logger.Error(err, msg)
 		return fmt.Errorf("%s: %w", msg, err)
@@ -127,6 +134,15 @@ func (c *callbacks) listListenersByNodeAndLabels(ctx context.Context, namespace 
 	}
 
 	return store.FilterListenersByLabels(listeners.Items, labels), nil
+}
+
+func (c *callbacks) listRoutesByNodeAndLabels(ctx context.Context, namespace string, labels map[string]string) ([]*api.Route, error) {
+	routes, err := c.store.ListRoutesByNamespace(ctx, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	return store.FilterRoutesByLabels(routes.Items, labels), nil
 }
 
 func streamLogger(l logr.Logger, id int64) logr.Logger {
