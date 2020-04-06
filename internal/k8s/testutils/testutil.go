@@ -30,7 +30,7 @@ func SetupEnvtest(t *testing.T) client.Client {
 
 	_, file, _, _ := runtime.Caller(0)
 	testEnv := envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join(path.Dir(file), "..", "..", "..", "kubernetes", "crd", "bases")},
+		CRDDirectoryPaths: []string{filepath.Join(path.Dir(file), "..", "..", "..", "kubernetes", "kpt")},
 	}
 
 	cfg, err := testEnv.Start()

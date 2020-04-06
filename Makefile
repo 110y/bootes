@@ -57,7 +57,7 @@ $(DELVE): go.sum
 
 # .PHONY: manifests
 # manifests: $(CONTROLLER_GEN)
-#         @$(CONTROLLER_GEN) crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/crd/bases output:stdout
+#         @$(CONTROLLER_GEN) crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/kpt output:stdout
 
 .PHONY: deepcopy
 deepcopy: $(CONTROLLER_GEN)
@@ -97,7 +97,9 @@ test:
 
 .PHONY: kind-apply-manifests
 kind-apply-manifests: $(KUBECTL)
-	@$(KUBECTL) apply -f ./kubernetes/crd/bases/
+	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_clusters.yaml
+	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_listeners.yaml
+	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_routes.yaml
 	@$(KUBECTL) apply -f ./dev/kind/namespace.yaml
 	sleep 15 # wait for namespace booting
 	@$(KUBECTL) apply -f ./dev/kind/manifest/

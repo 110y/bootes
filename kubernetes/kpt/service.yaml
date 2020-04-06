@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bootes
+  namespace: bootes # {"$ref":"#/definitions/io.k8s.cli.setters.namespace"}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: bootes
+  ports:
+  - name: xds
+    protocol: TCP
+    port: 5000
+    targetPort: 5000

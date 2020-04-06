@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootes
+  namespace: bootes # {"$ref":"#/definitions/io.k8s.cli.setters.namespace"}
+spec:
+  replicas: 2 # {"$ref":"#/definitions/io.k8s.cli.setters.replicas"}
+  selector:
+    matchLabels:
+      app: bootes
+  strategy:
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: bootes
+    spec:
+      containers:
+      - name: bootes
+        image: 110y/bootes:0.0.1 # {"$ref":"#/definitions/io.k8s.cli.substitutions.image"}
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sh
+              - -c
+              - sleep 5
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 4000
+            scheme: HTTP
+          initialDelaySeconds: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readyz
+            port: 4000
+            scheme: HTTP
+          initialDelaySeconds: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "2" # {"$ref":"#/definitions/io.k8s.cli.setters.cpu-limit"}
+            memory: 4Gi # {"$ref":"#/definitions/io.k8s.cli.setters.memory-limit"}
+          requests:
+            cpu: "1" # {"$ref":"#/definitions/io.k8s.cli.setters.cpu-request"}
+            memory: 2Gi # {"$ref":"#/definitions/io.k8s.cli.setters.memory-request"}
+        env:
+        - name: XDS_GRPC_PORT
+          value: '5000'
+        - name: XDS_GRPC_ENABLE_CHANNELZ
+          value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-xds-grpc-channelz"}
+        - name: XDS_GRPC_ENABLE_REFLECTION
+          value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-xds-grpc-reflection"}
+        - name: K8S_METRICS_SERVER_PORT
+          value: '4000'
+        - name: TRACE_USE_STDOUT
+          value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-stdout-trace"}
+        - name: TRACE_USE_JAEGER
+          value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-jaeger-trace"}
+        - name: TRACE_JAEGER_ENDPOINT
+          value: '' # {"$ref":"#/definitions/io.k8s.cli.setters.jaeger-trace-endpoint"}
+      terminationGracePeriodSeconds: 30
