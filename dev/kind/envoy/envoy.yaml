@@ -17,6 +17,9 @@ dynamic_resources:
     grpc_services:
       - envoy_grpc:
           cluster_name: bootes
+    rate_limit_settings:
+      max_tokens: 10
+      fill_rate: 1
 
 static_resources:
   clusters:
