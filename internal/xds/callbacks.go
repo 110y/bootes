@@ -2,6 +2,7 @@ package xds
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	api "github.com/110y/bootes/internal/k8s/api/v1"
@@ -71,8 +72,12 @@ func (c *callbacks) OnStreamRequest(streamID int64, req *envoyapi.DiscoveryReque
 
 	pod, err := c.store.GetPod(ctx, name, namespace)
 	if err != nil {
-		logger.Info("pod not found by node id")
-		return fmt.Errorf("pod not found by node id")
+		if errors.Is(err, store.ErrNotFound) {
+			logger.Info("pod not found by node id")
+			return fmt.Errorf("pod not found by node id")
+		}
+		logger.Error(err, "failed to get pod")
+		return fmt.Errorf("failed to get pod: %w", err)
 	}
 
 	clusters, err := c.listClustersByNodeAndLabels(ctx, namespace, pod.Labels)
