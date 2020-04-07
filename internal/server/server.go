@@ -55,6 +55,7 @@ func run(ctx context.Context) int {
 	c := cache.New(sc)
 
 	mgr, err := k8s.NewManager(&k8s.ManagerConfig{
+		HealthzServerPort: env.HealthProbeServerPort,
 		MetricsServerPort: env.K8SMetricsServerPort,
 	})
 	if err != nil {

@@ -13,6 +13,8 @@ spec:
       env:
         - name: GOTRACEBACK # to enable `skaffold debug` to recognize runtime
           value: 'single'
+        - name: HEALTH_PROBE_SERVER_PORT
+          value: '8080'
         - name: XDS_GRPC_PORT
           value: '8081'
         - name: XDS_GRPC_ENABLE_CHANNELZ
