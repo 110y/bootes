@@ -13,6 +13,7 @@ TYPE_SCAFFOLD  := $(BIN_DIR)/type-scaffold
 KIND           := $(BIN_DIR)/kind
 KUBECTL        := $(BIN_DIR)/kubectl
 SKAFFOLD       := $(BIN_DIR)/skaffold
+KPT            := $(BIN_DIR)/kpt
 DELVE          := $(BIN_DIR)/dlv
 
 KIND_NODE_VERSION := 1.17.2
@@ -46,13 +47,17 @@ $(SKAFFOLD): dev/.skaffold-version
 	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat ./dev/.skaffold-version)/skaffold-$(GOOS)-$(GOARCH)
 	@chmod +x $(SKAFFOLD)
 
+kpt: $(KPT)
+$(KPT): go.sum
+	@go build -o $(KPT) github.com/GoogleContainerTools/kpt
+
 delve: $(DELVE)
 $(DELVE): go.sum
 	@go build -o $(DELVE) github.com/go-delve/delve/cmd/dlv
 
 # .PHONY: manifests
 # manifests: $(CONTROLLER_GEN)
-#         @$(CONTROLLER_GEN) crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/crd/bases output:stdout
+#         @$(CONTROLLER_GEN) crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/kpt output:stdout
 
 .PHONY: deepcopy
 deepcopy: $(CONTROLLER_GEN)
@@ -92,7 +97,9 @@ test:
 
 .PHONY: kind-apply-manifests
 kind-apply-manifests: $(KUBECTL)
-	@$(KUBECTL) apply -f ./kubernetes/crd/bases/
+	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_clusters.yaml
+	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_listeners.yaml
+	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_routes.yaml
 	@$(KUBECTL) apply -f ./dev/kind/namespace.yaml
 	sleep 15 # wait for namespace booting
 	@$(KUBECTL) apply -f ./dev/kind/manifest/
