@@ -12,6 +12,8 @@ var (
 )
 
 type environments struct {
+	HealthProbeServerPort int `envconfig:"HEALTH_PROBE_SERVER_PORT" required:"true"`
+
 	XDSGRPCPort             int  `envconfig:"XDS_GRPC_PORT" required:"true"`
 	XDSGRPCEnableChannelz   bool `envconfig:"XDS_GRPC_ENABLE_CHANNELZ"`
 	XDSGRPCEnableReflection bool `envconfig:"XDS_GRPC_ENABLE_REFLECTION"`

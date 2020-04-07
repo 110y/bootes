@@ -2,12 +2,21 @@ package k8s
 
 import (
 	"fmt"
+	"net/http"
 
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+)
+
+const (
+	healthzEndpoint = "/healthz"
+	readyzEndpoint  = "/readyz"
+	healthzName     = "healthz"
+	readyzName      = "readyz"
 )
 
 func NewManager(c *ManagerConfig) (manager.Manager, error) {
@@ -21,16 +30,34 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 
 	cfg, err := ctrl.GetConfig()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get kubernetes configuration: %w", err)
 	}
 
 	manager, err := ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:             s,
-		MetricsBindAddress: fmt.Sprintf(":%d", c.MetricsServerPort),
+		Scheme:                 s,
+		ReadinessEndpointName:  readyzEndpoint,
+		LivenessEndpointName:   healthzEndpoint,
+		HealthProbeBindAddress: fmt.Sprintf(":%d", c.HealthzServerPort),
+		MetricsBindAddress:     fmt.Sprintf(":%d", c.MetricsServerPort),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create manager: %w", err)
 	}
 
+	if err := manager.AddHealthzCheck(healthzName, newHealthChecker()); err != nil {
+		return nil, fmt.Errorf("failed to register healthz checker: %w", err)
+	}
+
+	if err := manager.AddReadyzCheck(readyzName, newHealthChecker()); err != nil {
+		return nil, fmt.Errorf("failed to register readyz checker: %w", err)
+	}
+
 	return manager, nil
+}
+
+func newHealthChecker() healthz.Checker {
+	return func(req *http.Request) error {
+		// TODO: implement more meaningful healthz
+		return nil
+	}
 }
