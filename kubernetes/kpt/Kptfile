@@ -10,7 +10,7 @@ openAPI:
       x-k8s-cli:
         setter:
           name: version
-          value: 0.0.1
+          value: v0.0.1
     io.k8s.cli.substitutions.image:
       x-k8s-cli:
         substitution:
