@@ -16,7 +16,7 @@ SKAFFOLD       := $(BIN_DIR)/skaffold
 KPT            := $(BIN_DIR)/kpt
 DELVE          := $(BIN_DIR)/dlv
 
-KIND_NODE_VERSION := 1.17.2
+KIND_NODE_VERSION := 1.18.0
 KIND_CLUSTER_NAME := bootes
 
 .PHONY: kubebuilder
