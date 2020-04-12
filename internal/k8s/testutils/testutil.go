@@ -3,29 +3,29 @@
 package testutils
 
 import (
+	"fmt"
 	"path"
 	"path/filepath"
 	"runtime"
-	"testing"
 
-	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/google/uuid"
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+
+	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 )
 
 var s = k8sRuntime.NewScheme()
 
-func SetupEnvtest(t *testing.T) client.Client {
-	t.Helper()
-
+func TestK8SClient() (client.Client, func(), error) {
 	if err := scheme.AddToScheme(s); err != nil {
-		t.Fatalf("failed to create new scheme: %s", err)
+		return nil, nil, fmt.Errorf("failed to create new scheme: %w", err)
 	}
 
 	if err := apiv1.AddToScheme(s); err != nil {
-		t.Fatalf("faileld to add bootes scheme: %s", err)
+		return nil, nil, fmt.Errorf("faileld to add bootes scheme: %w", err)
 	}
 
 	_, file, _, _ := runtime.Caller(0)
@@ -35,27 +35,29 @@ func SetupEnvtest(t *testing.T) client.Client {
 
 	cfg, err := testEnv.Start()
 	if err != nil {
-		t.Fatalf("faileld to start test env: %s", err)
+		return nil, nil, fmt.Errorf("faileld to start test env: %w", err)
 	}
 
 	cli, err := client.New(cfg, client.Options{
 		Scheme: s,
 	})
 	if err != nil {
-		t.Errorf("faileld to create controller-runtime client: %s", err)
+		err = fmt.Errorf("faileld to create controller-runtime client: %w", err)
 
-		if err := testEnv.Stop(); err != nil {
-			t.Errorf("failed to stop test env: %s", err)
+		if nerr := testEnv.Stop(); err != nil {
+			err = fmt.Errorf("failed to stop test env: %w", nerr)
 		}
 
-		t.FailNow()
+		return nil, nil, err
 	}
 
-	t.Cleanup(func() {
+	return cli, func() {
 		if err := testEnv.Stop(); err != nil {
-			t.Fatalf("failed to stop test env: %s", err)
+			panic(fmt.Sprintf("failed to stop envtest instance: %s", err))
 		}
-	})
+	}, nil
+}
 
-	return cli
+func NewNamespace() string {
+	return uuid.New().String()
 }

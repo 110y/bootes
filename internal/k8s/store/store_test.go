@@ -2,11 +2,10 @@ package store_test
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 
-	api "github.com/110y/bootes/internal/k8s/api/v1"
-	"github.com/110y/bootes/internal/k8s/store"
-	"github.com/110y/bootes/internal/k8s/testutils"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
@@ -20,12 +19,35 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	api "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/k8s/store"
+	"github.com/110y/bootes/internal/k8s/testutils"
 )
 
-func TestGetCluster(t *testing.T) {
-	ctx := context.Background()
+var k8sClient client.Client
 
-	cli := testutils.SetupEnvtest(t)
+func TestMain(m *testing.M) {
+	os.Exit(func() int {
+		cli, done, err := testutils.TestK8SClient()
+		if err != nil {
+			fmt.Fprintf(os.Stdout, fmt.Sprintf("failed to create k8s client: %s", err))
+			os.Exit(1)
+		}
+		defer done()
+
+		k8sClient = cli
+
+		return m.Run()
+	}())
+}
+
+func TestGetCluster(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	namespace := testutils.NewNamespace()
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -34,7 +56,7 @@ func TestGetCluster(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-cluster-1",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"workloadSelector": map[string]interface{}{
@@ -76,7 +98,7 @@ func TestGetCluster(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-cluster-2",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"config": map[string]interface{}{
@@ -109,12 +131,12 @@ func TestGetCluster(t *testing.T) {
 	}
 
 	for _, f := range fixtures {
-		if err := cli.Create(ctx, f); err != nil {
+		if err := k8sClient.Create(ctx, f); err != nil {
 			t.Fatalf("failed to create fixture: %s", err)
 		}
 	}
 
-	s := store.New(cli, cli)
+	s := store.New(k8sClient, k8sClient)
 
 	tests := map[string]struct {
 		expected *api.Cluster
@@ -209,7 +231,9 @@ func TestGetCluster(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			actual, err := s.GetCluster(ctx, test.name, "test")
+			t.Parallel()
+
+			actual, err := s.GetCluster(ctx, test.name, namespace)
 			if err != nil {
 				t.Fatalf("error: %s", err)
 			}
@@ -222,9 +246,10 @@ func TestGetCluster(t *testing.T) {
 }
 
 func TestListClustersByNamespace(t *testing.T) {
-	cli := testutils.SetupEnvtest(t)
+	t.Parallel()
 
 	ctx := context.Background()
+	namespace := testutils.NewNamespace()
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -233,7 +258,7 @@ func TestListClustersByNamespace(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-cluster-1",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"workloadSelector": map[string]interface{}{
@@ -275,7 +300,7 @@ func TestListClustersByNamespace(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-cluster-2",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"config": map[string]interface{}{
@@ -308,12 +333,12 @@ func TestListClustersByNamespace(t *testing.T) {
 	}
 
 	for _, f := range fixtures {
-		if err := cli.Create(ctx, f); err != nil {
+		if err := k8sClient.Create(ctx, f); err != nil {
 			t.Fatalf("failed to create fixture: %s", err)
 		}
 	}
 
-	s := store.New(cli, cli)
+	s := store.New(k8sClient, k8sClient)
 
 	tests := map[string]struct {
 		expected *api.ClusterList
@@ -408,7 +433,9 @@ func TestListClustersByNamespace(t *testing.T) {
 		test := test
 
 		t.Run(name, func(t *testing.T) {
-			actual, err := s.ListClustersByNamespace(ctx, "test")
+			t.Parallel()
+
+			actual, err := s.ListClustersByNamespace(ctx, namespace)
 			if err != nil {
 				t.Fatalf("failed %s", err)
 			}
@@ -421,9 +448,10 @@ func TestListClustersByNamespace(t *testing.T) {
 }
 
 func TestGetListener(t *testing.T) {
-	ctx := context.Background()
+	t.Parallel()
 
-	cli := testutils.SetupEnvtest(t)
+	ctx := context.Background()
+	namespace := testutils.NewNamespace()
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -432,7 +460,7 @@ func TestGetListener(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-listener-1",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"workloadSelector": map[string]interface{}{
@@ -491,7 +519,7 @@ func TestGetListener(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-listener-2",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"config": map[string]interface{}{
@@ -541,12 +569,12 @@ func TestGetListener(t *testing.T) {
 	}
 
 	for _, f := range fixtures {
-		if err := cli.Create(ctx, f); err != nil {
+		if err := k8sClient.Create(ctx, f); err != nil {
 			t.Fatalf("failed to create fixture: %s", err)
 		}
 	}
 
-	s := store.New(cli, cli)
+	s := store.New(k8sClient, k8sClient)
 
 	cm, err := proto.Marshal(&hcm.HttpConnectionManager{
 		StatPrefix: "ingress_http",
@@ -667,7 +695,9 @@ func TestGetListener(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			actual, err := s.GetListener(ctx, test.name, "test")
+			t.Parallel()
+
+			actual, err := s.GetListener(ctx, test.name, namespace)
 			if err != nil {
 				t.Fatalf("error: %s", err)
 			}
@@ -680,9 +710,10 @@ func TestGetListener(t *testing.T) {
 }
 
 func TestListListenersByNamespace(t *testing.T) {
-	cli := testutils.SetupEnvtest(t)
+	t.Parallel()
 
 	ctx := context.Background()
+	namespace := testutils.NewNamespace()
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -691,7 +722,7 @@ func TestListListenersByNamespace(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-listener-1",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"workloadSelector": map[string]interface{}{
@@ -750,7 +781,7 @@ func TestListListenersByNamespace(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-listener-2",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"config": map[string]interface{}{
@@ -800,12 +831,12 @@ func TestListListenersByNamespace(t *testing.T) {
 	}
 
 	for _, f := range fixtures {
-		if err := cli.Create(ctx, f); err != nil {
+		if err := k8sClient.Create(ctx, f); err != nil {
 			t.Fatalf("failed to create fixture: %s", err)
 		}
 	}
 
-	s := store.New(cli, cli)
+	s := store.New(k8sClient, k8sClient)
 
 	cm, err := proto.Marshal(&hcm.HttpConnectionManager{
 		StatPrefix: "ingress_http",
@@ -926,7 +957,9 @@ func TestListListenersByNamespace(t *testing.T) {
 		test := test
 
 		t.Run(name, func(t *testing.T) {
-			actual, err := s.ListListenersByNamespace(ctx, "test")
+			t.Parallel()
+
+			actual, err := s.ListListenersByNamespace(ctx, namespace)
 			if err != nil {
 				t.Fatalf("failed %s", err)
 			}
@@ -939,9 +972,10 @@ func TestListListenersByNamespace(t *testing.T) {
 }
 
 func TestGetRoute(t *testing.T) {
-	ctx := context.Background()
+	t.Parallel()
 
-	cli := testutils.SetupEnvtest(t)
+	ctx := context.Background()
+	namespace := testutils.NewNamespace()
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -950,7 +984,7 @@ func TestGetRoute(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-route-1",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"workloadSelector": map[string]interface{}{
@@ -986,12 +1020,12 @@ func TestGetRoute(t *testing.T) {
 	}
 
 	for _, f := range fixtures {
-		if err := cli.Create(ctx, f); err != nil {
+		if err := k8sClient.Create(ctx, f); err != nil {
 			t.Fatalf("failed to create fixture: %s", err)
 		}
 	}
 
-	s := store.New(cli, cli)
+	s := store.New(k8sClient, k8sClient)
 
 	tests := map[string]struct {
 		expected *api.Route
@@ -1041,7 +1075,7 @@ func TestGetRoute(t *testing.T) {
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			actual, err := s.GetRoute(ctx, test.name, "test")
+			actual, err := s.GetRoute(ctx, test.name, namespace)
 			if err != nil {
 				t.Fatalf("error: %s", err)
 			}
@@ -1054,9 +1088,10 @@ func TestGetRoute(t *testing.T) {
 }
 
 func TestListRoutesByNamespace(t *testing.T) {
-	cli := testutils.SetupEnvtest(t)
+	t.Parallel()
 
 	ctx := context.Background()
+	namespace := testutils.NewNamespace()
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -1065,7 +1100,7 @@ func TestListRoutesByNamespace(t *testing.T) {
 				"apiVersion": api.GroupVersion.String(),
 				"metadata": map[string]interface{}{
 					"name":      "test-route-1",
-					"namespace": "test",
+					"namespace": namespace,
 				},
 				"spec": map[string]interface{}{
 					"workloadSelector": map[string]interface{}{
@@ -1101,12 +1136,12 @@ func TestListRoutesByNamespace(t *testing.T) {
 	}
 
 	for _, f := range fixtures {
-		if err := cli.Create(ctx, f); err != nil {
+		if err := k8sClient.Create(ctx, f); err != nil {
 			t.Fatalf("failed to create fixture: %s", err)
 		}
 	}
 
-	s := store.New(cli, cli)
+	s := store.New(k8sClient, k8sClient)
 
 	tests := map[string]struct {
 		expected *api.RouteList
@@ -1157,9 +1192,10 @@ func TestListRoutesByNamespace(t *testing.T) {
 
 	for name, test := range tests {
 		test := test
-
 		t.Run(name, func(t *testing.T) {
-			actual, err := s.ListRoutesByNamespace(ctx, "test")
+			t.Parallel()
+
+			actual, err := s.ListRoutesByNamespace(ctx, namespace)
 			if err != nil {
 				t.Fatalf("failed %s", err)
 			}
@@ -1172,14 +1208,15 @@ func TestListRoutesByNamespace(t *testing.T) {
 }
 
 func TestListPodsByNamespace(t *testing.T) {
-	cli := testutils.SetupEnvtest(t)
+	t.Parallel()
 
 	ctx := context.Background()
+	namespace := testutils.NewNamespace()
 
 	pod1 := corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "pod-1",
-			Namespace: "test",
+			Namespace: namespace,
 			Labels: map[string]string{
 				"app":  "envoy",
 				"test": "1",
@@ -1198,7 +1235,7 @@ func TestListPodsByNamespace(t *testing.T) {
 	pod2 := corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "pod-2",
-			Namespace: "test",
+			Namespace: namespace,
 			Labels: map[string]string{
 				"app":  "envoy",
 				"test": "2",
@@ -1220,7 +1257,7 @@ func TestListPodsByNamespace(t *testing.T) {
 	}
 
 	for _, f := range fixtures {
-		if err := cli.Create(ctx, &f); err != nil {
+		if err := k8sClient.Create(ctx, &f); err != nil {
 			t.Fatalf("failed to create fixture: %s", err)
 		}
 	}
@@ -1257,12 +1294,14 @@ func TestListPodsByNamespace(t *testing.T) {
 		},
 	}
 
-	s := store.New(cli, cli)
+	s := store.New(k8sClient, k8sClient)
 
 	for name, test := range tests {
 		test := test
 		t.Run(name, func(t *testing.T) {
-			actual, err := s.ListPodsByNamespace(ctx, "test", test.options...)
+			t.Parallel()
+
+			actual, err := s.ListPodsByNamespace(ctx, namespace, test.options...)
 			if err != nil {
 				t.Fatalf("failed %s", err)
 			}
