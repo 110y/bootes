@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-18.04
     container:
-      image: golang:1.14.1-buster
+      image: golang:1.14.2-buster
     steps:
       - uses: actions/checkout@v2
 

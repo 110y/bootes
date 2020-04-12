@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/110y/bootes/internal/k8s/store"
-	"github.com/110y/bootes/internal/observer/trace"
-	"github.com/110y/bootes/internal/xds/cache"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	"github.com/110y/bootes/internal/k8s/store"
+	"github.com/110y/bootes/internal/observer/trace"
+	"github.com/110y/bootes/internal/xds/cache"
 )
 
 var _ reconcile.Reconciler = (*ClusterReconciler)(nil)
