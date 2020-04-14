@@ -9,7 +9,7 @@ spec:
   selector:
     app: bootes
   ports:
-  - name: xds
+  - name: xds-grpc
     protocol: TCP
     port: 5000
     targetPort: 5000
