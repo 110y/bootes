@@ -21,6 +21,8 @@ spec:
           value: 'true'
         - name: XDS_GRPC_ENABLE_REFLECTION
           value: 'true'
+        - name: K8S_WEBHOOK_SERVER_PORT
+          value: '3000'
         - name: K8S_METRICS_SERVER_PORT
           value: '4000'
         - name: TRACE_USE_STDOUT

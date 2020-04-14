@@ -18,6 +18,7 @@ type environments struct {
 	XDSGRPCEnableChannelz   bool `envconfig:"XDS_GRPC_ENABLE_CHANNELZ"`
 	XDSGRPCEnableReflection bool `envconfig:"XDS_GRPC_ENABLE_REFLECTION"`
 
+	K8SWebhookServerPort int `envconfig:"K8S_WEBHOOK_SERVER_PORT" required:"true"`
 	K8SMetricsServerPort int `envconfig:"K8S_METRICS_SERVER_PORT" required:"true"`
 
 	TraceUseStdout              bool   `envconfig:"TRACE_USE_STDOUT"`

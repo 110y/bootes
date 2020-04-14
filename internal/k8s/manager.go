@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"net/http"
 
-	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+
+	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 )
 
 const (
@@ -35,6 +36,8 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 
 	manager, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:                 s,
+		LeaderElection:         false,
+		Port:                   c.WebhookServerPort,
 		ReadinessEndpointName:  readyzEndpoint,
 		LivenessEndpointName:   healthzEndpoint,
 		HealthProbeBindAddress: fmt.Sprintf(":%d", c.HealthzServerPort),

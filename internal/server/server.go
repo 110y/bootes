@@ -58,6 +58,7 @@ func run(ctx context.Context) int {
 
 	mgr, err := k8s.NewManager(&k8s.ManagerConfig{
 		HealthzServerPort: env.HealthProbeServerPort,
+		WebhookServerPort: env.K8SWebhookServerPort,
 		MetricsServerPort: env.K8SMetricsServerPort,
 	})
 	if err != nil {
@@ -150,6 +151,7 @@ func run(ctx context.Context) int {
 		}
 
 		return 1
+
 	case err := <-k8sErrChan:
 		sl.Error(err, "failed to run k8s controller")
 		xdsStopChan <- struct{}{}
