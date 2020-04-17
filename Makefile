@@ -97,9 +97,9 @@ test:
 
 .PHONY: kind-apply-manifests
 kind-apply-manifests: $(KUBECTL)
-	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_clusters.yaml
-	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_listeners.yaml
-	@$(KUBECTL) apply -f ./kubernetes/kpt/bootes.io_routes.yaml
+	@$(KUBECTL) apply -f ./kubernetes/kpt/namespace.yaml
+	@$(KUBECTL) apply -f ./kubernetes/kpt/crd/
+	@$(KUBECTL) apply -f ./kubernetes/kpt/role/
 	@$(KUBECTL) apply -f ./dev/kind/namespace.yaml
 	sleep 15 # wait for namespace booting
 	@$(KUBECTL) apply -f ./dev/kind/manifest/
