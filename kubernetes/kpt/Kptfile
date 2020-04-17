@@ -69,6 +69,16 @@ openAPI:
         setter:
           name: enable-xds-grpc-reflection
           value: 'false'
+    io.k8s.cli.setters.enable-gcp-cloud-trace:
+      x-k8s-cli:
+        setter:
+          name: enable-gcp-cloud-trace
+          value: 'false'
+    io.k8s.cli.setters.gcp-cloud-trace-project-id:
+      x-k8s-cli:
+        setter:
+          name: gcp-cloud-trace-project-id
+          value: ''
     io.k8s.cli.setters.namespace:
       x-k8s-cli:
         setter:

@@ -29,3 +29,7 @@ spec:
           value: 'true'
         - name: TRACE_JAEGER_ENDPOINT
           value: 'http://jaeger.jaeger.svc.cluster.local:14268/api/traces'
+        - name: TRACE_USE_GCP_CLOUD_TRACE
+          value: 'false'
+        - name: TRACE_GCP_CLOUD_TRACE_PROJECT_ID
+          value: ''

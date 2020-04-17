@@ -39,10 +39,12 @@ func run(ctx context.Context) int {
 	}
 
 	flush, err := trace.Initialize(&trace.Config{
-		UseStdout:      env.TraceUseStdout,
-		UseJaeger:      env.TraceUseJaeger,
-		JaegerEndpoint: env.TraceJaegerEndpoint,
-		Logger:         l.WithName("trace"),
+		UseStdout:              env.TraceUseStdout,
+		UseJaeger:              env.TraceUseJaeger,
+		JaegerEndpoint:         env.TraceJaegerEndpoint,
+		UseGCPCloudTrace:       env.TraceUseGCPCloudTrace,
+		GCPCloudTraceProjectID: env.TraceGCPCloudTraceProjectID,
+		Logger:                 l.WithName("trace"),
 	})
 	if err != nil {
 		sl.Error(err, "failed to initialize tracer")

@@ -30,7 +30,7 @@ func TestK8SClient() (client.Client, func(), error) {
 
 	_, file, _, _ := runtime.Caller(0)
 	testEnv := envtest.Environment{
-		CRDDirectoryPaths: []string{filepath.Join(path.Dir(file), "..", "..", "..", "kubernetes", "kpt")},
+		CRDDirectoryPaths: []string{filepath.Join(path.Dir(file), "..", "..", "..", "kubernetes", "kpt", "crd")},
 	}
 
 	cfg, err := testEnv.Start()

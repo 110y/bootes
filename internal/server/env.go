@@ -20,9 +20,11 @@ type environments struct {
 
 	K8SMetricsServerPort int `envconfig:"K8S_METRICS_SERVER_PORT" required:"true"`
 
-	TraceUseStdout      bool   `envconfig:"TRACE_USE_STDOUT"`
-	TraceUseJaeger      bool   `envconfig:"TRACE_USE_JAEGER"`
-	TraceJaegerEndpoint string `envconfig:"TRACE_JAEGER_ENDPOINT"`
+	TraceUseStdout              bool   `envconfig:"TRACE_USE_STDOUT"`
+	TraceUseJaeger              bool   `envconfig:"TRACE_USE_JAEGER"`
+	TraceJaegerEndpoint         string `envconfig:"TRACE_JAEGER_ENDPOINT"`
+	TraceUseGCPCloudTrace       bool   `envconfig:"TRACE_USE_GCP_CLOUD_TRACE"`
+	TraceGCPCloudTraceProjectID string `envconfig:"TRACE_GCP_CLOUD_TRACE_PROJECT_ID"`
 }
 
 func getEnvironments() (*environments, error) {

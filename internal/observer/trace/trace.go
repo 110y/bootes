@@ -4,20 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/110y/bootes/internal/observer/trace/jaeger"
-	"github.com/110y/bootes/internal/observer/trace/stdout"
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel/api/global"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+
+	"github.com/110y/bootes/internal/observer/trace/cloudtrace"
+	"github.com/110y/bootes/internal/observer/trace/jaeger"
+	"github.com/110y/bootes/internal/observer/trace/stdout"
 )
 
 const tracerName = "bootes.io"
 
 type Config struct {
-	UseStdout      bool
-	UseJaeger      bool
-	JaegerEndpoint string
-	Logger         logr.Logger
+	UseStdout              bool
+	UseJaeger              bool
+	JaegerEndpoint         string
+	UseGCPCloudTrace       bool
+	GCPCloudTraceProjectID string
+	Logger                 logr.Logger
 }
 
 func Initialize(config *Config) (func(), error) {
@@ -40,6 +44,12 @@ func Initialize(config *Config) (func(), error) {
 		}
 
 		flushers = append(flushers, flush)
+	}
+
+	if config.UseGCPCloudTrace {
+		if err := cloudtrace.Initialize(c, config.GCPCloudTraceProjectID, config.Logger.WithName("cloud-trace")); err != nil {
+			return nil, fmt.Errorf("failed to initialize cloud trace tracer: %w", err)
+		}
 	}
 
 	return func() {
