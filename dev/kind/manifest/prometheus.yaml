@@ -46,9 +46,6 @@ data:
       scrape_interval:     15s
       evaluation_interval: 15s
     scrape_configs:
-      - job_name: 'prometheus'
-        static_configs:
-          - targets: ['localhost:9090']
       - job_name: 'bootes'
         static_configs:
-          - targets: ['localhost:4000']
+          - targets: ['bootes.bootes.svc.cluster.local:4000']
