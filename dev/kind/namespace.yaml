@@ -2,12 +2,6 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: bootes
-
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: envoy
 
 ---
@@ -15,3 +9,9 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: jaeger
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prometheus
