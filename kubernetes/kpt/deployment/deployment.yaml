@@ -73,4 +73,8 @@ spec:
           value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-jaeger-trace"}
         - name: TRACE_JAEGER_ENDPOINT
           value: '' # {"$ref":"#/definitions/io.k8s.cli.setters.jaeger-trace-endpoint"}
+        - name: TRACE_USE_GCP_CLOUD_TRACE
+          value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-gcp-cloud-trace"}
+        - name: TRACE_GCP_CLOUD_TRACE_PROJECT_ID
+          value: '' # {"$ref":"#/definitions/io.k8s.cli.setters.gcp-cloud-trace-project-id"}
       terminationGracePeriodSeconds: 30

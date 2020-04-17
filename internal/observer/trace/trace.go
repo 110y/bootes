@@ -9,7 +9,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"github.com/110y/bootes/internal/observer/trace/cloudtrace"
-
 	"github.com/110y/bootes/internal/observer/trace/jaeger"
 	"github.com/110y/bootes/internal/observer/trace/stdout"
 )

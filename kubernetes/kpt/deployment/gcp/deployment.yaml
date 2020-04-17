@@ -1,0 +1,23 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bootes
+  namespace: bootes # {"$ref":"#/definitions/io.k8s.cli.setters.namespace"}
+spec:
+  template:
+    spec:
+      containers:
+        - name: bootes
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: '/etc/google/service-account.json'
+          volumeMounts:
+            - mountPath: /etc/google
+              name: gcp-pod-default-service-account
+              readOnly: true
+      volumes:
+        - name: gcp-pod-default-service-account
+          secret:
+            defaultMode: 420
+            secretName: gcp-pod-default-service-account
