@@ -1,10 +1,11 @@
 # Bootes
 
-Minimalistic control plane for `Kubernetes` backed `Envoy` data planes.
+Minimalistic XDS Control-Plane Kubernetes Controller for Envoy.
 
 ## Overview
 
-Bootes is implemented as a Kubernetes Controller and you can use any Envoy configurations via Custom Resources like below:
+Minimalistic XDS Control-Plane Kubernetes Controller for Envoy.
+You can distribute any Envoy configurations via Kubernetes Custom Resources like below:
 
 ```yaml
 ---
@@ -36,8 +37,10 @@ By applying this example resource, Bootes sends one cluster configuration named 
 ## Supported Resources
 
 - [x] Cluster
+- [x] Endpoint
 - [x] Listener
 - [x] Route
 - [ ] VirtualHost
-- [ ] Endpoint
+- [ ] Secret
 - [ ] Runtime
+- [ ] ScopedRoutes
