@@ -9,6 +9,7 @@ rules:
   - clusters
   - listeners
   - routes
+  - endpoints
   verbs:
   - create
   - delete
@@ -23,6 +24,7 @@ rules:
   - clusters/status
   - listeners/status
   - routes/status
+  - endpoints/status
   verbs:
   - get
   - patch
