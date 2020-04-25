@@ -3,13 +3,14 @@ package k8s
 import (
 	"fmt"
 
+	"github.com/go-logr/logr"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/k8s/internal/controller"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"
-	"github.com/go-logr/logr"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type Controller struct {
@@ -29,6 +30,10 @@ func NewController(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Log
 	}
 
 	if err := setupRouteReconciler(mgr, s, c, l.WithName("route_reconciler")); err != nil {
+		return nil, err
+	}
+
+	if err := setupEndpointReconciler(mgr, s, c, l.WithName("endpoint_reconciler")); err != nil {
 		return nil, err
 	}
 
@@ -63,6 +68,16 @@ func setupRouteReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l l
 
 	if err := ctrl.NewControllerManagedBy(mgr).For(&apiv1.Route{}).Complete(rr); err != nil {
 		return fmt.Errorf("failed to setup route reconciler: %s", err)
+	}
+
+	return nil
+}
+
+func setupEndpointReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Logger) error {
+	rr := controller.NewEndpointReconciler(s, c, l)
+
+	if err := ctrl.NewControllerManagedBy(mgr).For(&apiv1.Endpoint{}).Complete(rr); err != nil {
+		return fmt.Errorf("failed to setup endpoint reconciler: %s", err)
 	}
 
 	return nil

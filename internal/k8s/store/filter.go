@@ -37,6 +37,17 @@ func FilterRoutesByLabels(routes []*api.Route, labels map[string]string) []*api.
 	return results
 }
 
+func FilterEndpointsByLabels(endpoints []*api.Endpoint, labels map[string]string) []*api.Endpoint {
+	results := []*api.Endpoint{}
+	for _, e := range endpoints {
+		if matchSelector(e, labels) {
+			results = append(results, e)
+		}
+	}
+
+	return results
+}
+
 func matchSelector(resource api.EnvoyResource, labels map[string]string) bool {
 	ws := resource.GetWorkloadSelector()
 	if ws == nil {

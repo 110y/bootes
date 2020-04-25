@@ -11,7 +11,7 @@ spec:
     kind: Endpoint
     listKind: EndpointList
     plural: endpoints
-    singular: endpoints
+    singular: endpoint
   scope: Namespaced
   validation:
     openAPIV3Schema:
