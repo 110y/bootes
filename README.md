@@ -43,4 +43,4 @@ By applying this example resource, Bootes sends one cluster configuration named 
 - [ ] VirtualHost
 - [ ] Secret
 - [ ] Runtime
-- [ ] ScopedRoutes
+- [ ] ScopedRoute
