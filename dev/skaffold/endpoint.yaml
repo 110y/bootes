@@ -1,0 +1,33 @@
+---
+apiVersion: bootes.io/v1
+kind: Endpoint
+metadata:
+  name: endpoint-1
+  namespace: envoy
+spec:
+  config:
+    cluster_name: cluster-1
+    endpoints:
+      - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: 192.168.0.1
+                  port_value: 10000
+
+---
+apiVersion: bootes.io/v1
+kind: Endpoint
+metadata:
+  name: endpoint-2
+  namespace: envoy
+spec:
+  config:
+    cluster_name: cluster-2
+    endpoints:
+      - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: 192.168.0.2
+                  port_value: 10000

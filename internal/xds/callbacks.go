@@ -5,14 +5,15 @@ import (
 	"errors"
 	"fmt"
 
-	api "github.com/110y/bootes/internal/k8s/api/v1"
-	"github.com/110y/bootes/internal/k8s/store"
-	"github.com/110y/bootes/internal/observer/trace"
-	"github.com/110y/bootes/internal/xds/cache"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	server "github.com/envoyproxy/go-control-plane/pkg/server/v2"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
+
+	api "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/k8s/store"
+	"github.com/110y/bootes/internal/observer/trace"
+	"github.com/110y/bootes/internal/xds/cache"
 )
 
 var _ server.Callbacks = (*callbacks)(nil)
@@ -101,7 +102,14 @@ func (c *callbacks) OnStreamRequest(streamID int64, req *envoyapi.DiscoveryReque
 		return fmt.Errorf("%s: %w", msg, err)
 	}
 
-	if err := c.cache.UpdateAllResources(ctx, node, version, clusters, listeners, routes); err != nil {
+	endpoints, err := c.listEndpointsByNodeAndLabels(ctx, namespace, pod.Labels)
+	if err != nil {
+		msg := "failed to list endpoint configurations"
+		logger.Error(err, msg)
+		return fmt.Errorf("%s: %w", msg, err)
+	}
+
+	if err := c.cache.UpdateAllResources(ctx, node, version, clusters, listeners, routes, endpoints); err != nil {
 		msg := "failed to update resources"
 		logger.Error(err, msg)
 		return fmt.Errorf("%s: %w", msg, err)
@@ -148,6 +156,15 @@ func (c *callbacks) listRoutesByNodeAndLabels(ctx context.Context, namespace str
 	}
 
 	return store.FilterRoutesByLabels(routes.Items, labels), nil
+}
+
+func (c *callbacks) listEndpointsByNodeAndLabels(ctx context.Context, namespace string, labels map[string]string) ([]*api.Endpoint, error) {
+	endpoints, err := c.store.ListEndpointsByNamespace(ctx, namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	return store.FilterEndpointsByLabels(endpoints.Items, labels), nil
 }
 
 func streamLogger(l logr.Logger, id int64) logr.Logger {

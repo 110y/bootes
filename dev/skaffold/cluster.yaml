@@ -8,18 +8,12 @@ spec:
   config:
     name: cluster-1
     connect_timeout: 1s
-    type: LOGICAL_DNS
+    type: EDS
     lb_policy: ROUND_ROBIN
     http2_protocol_options: {}
-    load_assignment:
-      cluster_name: cluster-1
-      endpoints:
-        - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: cluster-1.test.svc.cluster.local
-                    port_value: 10000
+    eds_cluster_config:
+      eds_config:
+        ads: {}
 
 ---
 apiVersion: bootes.io/v1
@@ -34,15 +28,9 @@ spec:
   config:
     name: cluster-2
     connect_timeout: 1s
-    type: LOGICAL_DNS
+    type: EDS
     lb_policy: ROUND_ROBIN
     http2_protocol_options: {}
-    load_assignment:
-      cluster_name: cluster-2
-      endpoints:
-        - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: cluster-2.test.svc.cluster.local
-                    port_value: 10000
+    eds_cluster_config:
+      eds_config:
+        ads: {}

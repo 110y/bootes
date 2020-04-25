@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 
-	api "github.com/110y/bootes/internal/k8s/api/v1"
-	"github.com/110y/bootes/internal/observer/trace"
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	"github.com/golang/protobuf/jsonpb"
 	corev1 "k8s.io/api/core/v1"
@@ -17,6 +15,9 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	api "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/observer/trace"
 )
 
 var (
@@ -46,6 +47,8 @@ type Store interface {
 	ListListenersByNamespace(ctx context.Context, namespace string) (*api.ListenerList, error)
 	GetRoute(ctx context.Context, name, namespace string) (*api.Route, error)
 	ListRoutesByNamespace(ctx context.Context, namespace string) (*api.RouteList, error)
+	GetEndpoint(ctx context.Context, name, namespace string) (*api.Endpoint, error)
+	ListEndpointsByNamespace(ctx context.Context, namespace string) (*api.EndpointList, error)
 	GetPod(ctx context.Context, name, namespace string) (*corev1.Pod, error)
 	ListPodsByNamespace(ctx context.Context, namespace string, options ...ListOption) (*corev1.PodList, error)
 }
@@ -258,6 +261,70 @@ func (s *store) ListRoutesByNamespace(ctx context.Context, namespace string) (*a
 	}, nil
 }
 
+func (s *store) GetEndpoint(ctx context.Context, name, namespace string) (*api.Endpoint, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.GetEndpoint")
+	defer span.End()
+
+	key := client.ObjectKey{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	endpoint := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"kind":       api.EndpointKind,
+			"apiVersion": api.GroupVersion.String(),
+		},
+	}
+
+	if err := s.client.Get(ctx, key, endpoint); err != nil {
+		if apierrors.IsNotFound(err) {
+			return nil, ErrNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get endpoint: %w", err)
+	}
+
+	e, err := s.unmarshalEndpoint(endpoint.Object)
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
+}
+
+func (s *store) ListEndpointsByNamespace(ctx context.Context, namespace string) (*api.EndpointList, error) {
+	ctx, span := trace.NewSpan(ctx, "Store.ListEndpointsByNamespace")
+	defer span.End()
+
+	routes := &unstructured.UnstructuredList{
+		Object: map[string]interface{}{
+			"kind":       api.EndpointKind,
+			"apiVersion": api.GroupVersion.String(),
+		},
+	}
+	err := s.client.List(ctx, routes, &client.ListOptions{
+		Namespace: namespace,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list endpoints: %w", err)
+	}
+
+	items := make([]*api.Endpoint, len(routes.Items))
+	for i, c := range routes.Items {
+		endpoint, err := s.unmarshalEndpoint(c.Object)
+		if err != nil {
+			return nil, err
+		}
+
+		items[i] = endpoint
+	}
+
+	return &api.EndpointList{
+		Items: items,
+	}, nil
+}
+
 func (s *store) GetPod(ctx context.Context, name, namespace string) (*corev1.Pod, error) {
 	ctx, span := trace.NewSpan(ctx, "Store.GetPod")
 	defer span.End()
@@ -464,6 +531,44 @@ func (s *store) unmarshalRouteConfig(spec map[string]interface{}) (*envoyapi.Rou
 	}
 
 	return route, nil
+}
+
+func (s *store) unmarshalEndpoint(object map[string]interface{}) (*api.Endpoint, error) {
+	spec, err := extractSpecFromObject(object)
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := s.unmarshalEndpointConfig(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	selector, err := unmarshalWorkloadSelector(spec)
+	if err != nil && !errors.Is(err, errWorkloadSelectorNotFound) {
+		return nil, err
+	}
+
+	return &api.Endpoint{
+		Spec: api.EndpointSpec{
+			WorkloadSelector: selector,
+			Config:           config,
+		},
+	}, nil
+}
+
+func (s *store) unmarshalEndpointConfig(spec map[string]interface{}) (*envoyapi.ClusterLoadAssignment, error) {
+	config, err := unmarshalEnvoyConfig(spec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
+	}
+
+	endpoint := &envoyapi.ClusterLoadAssignment{}
+	if err := s.unmarshaler.Unmarshal(config, endpoint); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
+	}
+
+	return endpoint, nil
 }
 
 func unmarshalEnvoyConfig(spec map[string]interface{}) (*bytes.Buffer, error) {

@@ -4,21 +4,23 @@ import (
 	"context"
 	"fmt"
 
-	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
-	"github.com/110y/bootes/internal/observer/trace"
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache/v2"
 	resource "github.com/envoyproxy/go-control-plane/pkg/resource/v2"
+
+	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/observer/trace"
 )
 
 var _ Cache = (*cache)(nil)
 
 type Cache interface {
 	IsCachedNode(node string) bool
-	UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener, routes []*apiv1.Route) error
+	UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener, routes []*apiv1.Route, endpoints []*apiv1.Endpoint) error
 	UpdateClusters(ctx context.Context, node, version string, clusters []*apiv1.Cluster) error
 	UpdateListeners(ctx context.Context, node, version string, listeners []*apiv1.Listener) error
 	UpdateRoutes(ctx context.Context, node, version string, routes []*apiv1.Route) error
+	UpdateEndpoints(ctx context.Context, node, version string, endpoints []*apiv1.Endpoint) error
 }
 
 type cache struct {
@@ -40,7 +42,7 @@ func (c *cache) IsCachedNode(node string) bool {
 	return true
 }
 
-func (c *cache) UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener, routes []*apiv1.Route) error {
+func (c *cache) UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener, routes []*apiv1.Route, endpoints []*apiv1.Endpoint) error {
 	ctx, span := trace.NewSpan(ctx, "Cache.UpdateAllResources")
 	defer span.End()
 
@@ -59,15 +61,19 @@ func (c *cache) UpdateAllResources(ctx context.Context, node, version string, cl
 		rr[i] = r.Spec.Config
 	}
 
+	er := make([]types.Resource, len(endpoints))
+	for i, e := range endpoints {
+		er[i] = e.Spec.Config
+	}
+
 	var s xdscache.Snapshot
 	oldSnapshot, err := c.snapshotCache.GetSnapshot(node)
 	if err != nil {
-		s = xdscache.NewSnapshot(version, nil, cr, rr, lr, nil)
+		s = xdscache.NewSnapshot(version, er, cr, rr, lr, nil)
 	} else {
-		endpoints := getResourceFromSnapshot(&oldSnapshot, resource.EndpointType)
 		runtimes := getResourceFromSnapshot(&oldSnapshot, resource.RuntimeType)
 
-		xdscache.NewSnapshot(version, endpoints, cr, rr, lr, runtimes)
+		xdscache.NewSnapshot(version, er, cr, rr, lr, runtimes)
 	}
 
 	if err := c.snapshotCache.SetSnapshot(node, s); err != nil {
@@ -108,6 +114,18 @@ func (c *cache) UpdateRoutes(ctx context.Context, node, version string, routes [
 	snapshot := c.newRouteSnapshot(node, version, routes)
 	if err := c.snapshotCache.SetSnapshot(node, snapshot); err != nil {
 		return fmt.Errorf("failed to update route snapshot: %w", err)
+	}
+
+	return nil
+}
+
+func (c *cache) UpdateEndpoints(ctx context.Context, node, version string, endpoints []*apiv1.Endpoint) error {
+	ctx, span := trace.NewSpan(ctx, "Cache.UpdateEndpoints")
+	defer span.End()
+
+	snapshot := c.newEndpointSnapshot(node, version, endpoints)
+	if err := c.snapshotCache.SetSnapshot(node, snapshot); err != nil {
+		return fmt.Errorf("failed to update endpoint snapshot: %w", err)
 	}
 
 	return nil
@@ -168,6 +186,25 @@ func (c *cache) newRouteSnapshot(node, version string, routes []*apiv1.Route) xd
 	runtimes := getResourceFromSnapshot(&s, resource.RuntimeType)
 
 	return xdscache.NewSnapshot(version, endpoints, clusters, resources, listeners, runtimes)
+}
+
+func (c *cache) newEndpointSnapshot(node, version string, endpoints []*apiv1.Endpoint) xdscache.Snapshot {
+	resources := make([]types.Resource, len(endpoints))
+	for i, r := range endpoints {
+		resources[i] = r.Spec.Config
+	}
+
+	s, err := c.snapshotCache.GetSnapshot(node)
+	if err != nil {
+		return xdscache.NewSnapshot(version, nil, nil, resources, nil, nil)
+	}
+
+	clusters := getResourceFromSnapshot(&s, resource.ClusterType)
+	listeners := getResourceFromSnapshot(&s, resource.ListenerType)
+	routes := getResourceFromSnapshot(&s, resource.RouteType)
+	runtimes := getResourceFromSnapshot(&s, resource.RuntimeType)
+
+	return xdscache.NewSnapshot(version, resources, clusters, routes, listeners, runtimes)
 }
 
 func getResourceFromSnapshot(snapshot *xdscache.Snapshot, typeURL string) []types.Resource {
