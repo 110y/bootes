@@ -21,7 +21,7 @@ func newLogger() (logr.Logger, error) {
 			MessageKey:     "message",
 			LineEnding:     zapcore.DefaultLineEnding,
 			EncodeLevel:    zapcore.LowercaseLevelEncoder,
-			EncodeTime:     zapcore.EpochTimeEncoder,
+			EncodeTime:     zapcore.EpochMillisTimeEncoder,
 			EncodeDuration: zapcore.SecondsDurationEncoder,
 		},
 		OutputPaths:      []string{"stdout"},
