@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	certDir         = "/tmp/k8s-webhook-server/serving-certs"
 	healthzEndpoint = "/healthz"
 	readyzEndpoint  = "/readyz"
 	healthzName     = "healthz"
@@ -40,6 +41,7 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 		Port:                   c.WebhookServerPort,
 		ReadinessEndpointName:  readyzEndpoint,
 		LivenessEndpointName:   healthzEndpoint,
+		CertDir:                certDir,
 		HealthProbeBindAddress: fmt.Sprintf(":%d", c.HealthzServerPort),
 		MetricsBindAddress:     fmt.Sprintf(":%d", c.MetricsServerPort),
 	})
