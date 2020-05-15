@@ -35,3 +35,12 @@ spec:
           value: 'false'
         - name: TRACE_GCP_CLOUD_TRACE_PROJECT_ID
           value: ''
+      volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+  volumes:
+    - name: cert
+      secret:
+        defaultMode: 420
+        secretName: webhook-server-cert

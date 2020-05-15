@@ -1,3 +1,5 @@
+.ONESHELL:
+
 GOOS   := $(shell go env GOOS)
 GOARCH := $(shell go env GOARCH)
 
@@ -67,8 +69,11 @@ deepcopy: $(CONTROLLER_GEN)
 kind-cluster: $(KIND) $(KUBECTL)
 	@$(KIND) delete cluster --name $(KIND_CLUSTER_NAME)
 	@$(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image kindest/node:v${KIND_NODE_VERSION}
-	make kind-image
-	make kind-apply-manifests
+	@make kind-image
+	@make kind-apply-manifests
+	@kubectl create secret generic webhook-server-cert -n bootes \
+		--from-file=tls.key=./dev/kind/certs/tls.key \
+		--from-file=tls.crt=./dev/kind/certs/tls.crt
 
 .PHONY: kind-image
 kind-image: $(KIND)
@@ -103,3 +108,14 @@ kind-apply-manifests: $(KUBECTL)
 	@$(KUBECTL) apply -f ./dev/kind/namespace.yaml
 	sleep 15 # wait for namespace booting
 	@$(KUBECTL) apply -f ./dev/kind/manifest/
+
+# from this: https://github.com/stackrox/admission-controller-webhook-demo/blob/73d05d4/deployment/generate-keys.sh
+.PHONY: test-certs
+test-certs:
+	@cd ./dev/kind/certs
+	# Generate the CA cert and private key
+	@openssl req -nodes -new -x509 -keyout ca.key -out ca.crt -subj "/CN=Bootes Admission Controller Webhook CA"
+	# Generate the private key for the webhook server
+	@openssl genrsa -out tls.key 2048
+	# Generate a Certificate Signing Request (CSR) for the private key, and sign it with the private key of the CA.
+	@openssl req -new -key tls.key -subj "/CN=bootes.bootes.svc" | openssl x509 -req -CA ca.crt -CAkey ca.key -CAcreateserial -out tls.crt
