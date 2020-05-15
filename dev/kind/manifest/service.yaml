@@ -17,3 +17,7 @@ spec:
       protocol: TCP
       port: 4000
       targetPort: 4000
+    - name: http-webhook
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
