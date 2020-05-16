@@ -1,4 +1,4 @@
-FROM golang:1.14.2-buster AS builder
+FROM golang:1.14.3-buster AS builder
 
 ENV GO111MODULE=on
 ENV GOOS=linux
