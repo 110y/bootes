@@ -7,7 +7,7 @@ WORKDIR /go/src/github.com/110y/bootes
 
 COPY go.mod go.mod
 COPY go.sum go.sum
-RUN go mod download
+RUN GOPROXY='direct' go mod download
 
 COPY . .
 RUN go build -o /usr/bin/bootes .
