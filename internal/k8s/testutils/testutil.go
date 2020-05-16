@@ -3,12 +3,16 @@
 package testutils
 
 import (
+	"context"
 	"fmt"
 	"path"
 	"path/filepath"
 	"runtime"
+	"testing"
 
 	"github.com/google/uuid"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -58,6 +62,19 @@ func TestK8SClient() (client.Client, func(), error) {
 	}, nil
 }
 
-func NewNamespace() string {
-	return uuid.New().String()
+func NewNamespace(t *testing.T, ctx context.Context, cli client.Client) string {
+	t.Helper()
+
+	name := uuid.New().String()
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}
+
+	if err := cli.Create(ctx, ns); err != nil {
+		t.Fatalf("failed to create namespace: %s", err)
+	}
+
+	return name
 }
