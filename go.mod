@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v0.1.1-0.20200514210843-966afdc5d38c
 	github.com/GoogleContainerTools/kpt v0.24.0
-	github.com/envoyproxy/go-control-plane v0.9.5
+	github.com/envoyproxy/go-control-plane v0.9.6-0.20200515231342-7f3793182f0e
 	github.com/go-delve/delve v1.4.0
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1
