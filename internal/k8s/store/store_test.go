@@ -47,7 +47,7 @@ func TestGetCluster(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	namespace := testutils.NewNamespace()
+	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -249,7 +249,7 @@ func TestListClustersByNamespace(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	namespace := testutils.NewNamespace()
+	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -451,7 +451,7 @@ func TestGetListener(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	namespace := testutils.NewNamespace()
+	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -713,7 +713,7 @@ func TestListListenersByNamespace(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	namespace := testutils.NewNamespace()
+	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -975,7 +975,7 @@ func TestGetRoute(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	namespace := testutils.NewNamespace()
+	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -1091,7 +1091,7 @@ func TestListRoutesByNamespace(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	namespace := testutils.NewNamespace()
+	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
 		&unstructured.Unstructured{
@@ -1211,7 +1211,7 @@ func TestListPodsByNamespace(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	namespace := testutils.NewNamespace()
+	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	pod1 := corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{

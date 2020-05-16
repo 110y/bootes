@@ -17,10 +17,10 @@ require (
 	go.opentelemetry.io/otel/exporters/trace/jaeger v0.5.0
 	go.uber.org/zap v1.14.0
 	google.golang.org/grpc v1.29.1
-	k8s.io/api v0.17.3
-	k8s.io/apimachinery v0.17.3
-	k8s.io/client-go v0.17.3
-	sigs.k8s.io/controller-runtime v0.5.1
+	k8s.io/api v0.18.2
+	k8s.io/apimachinery v0.18.2
+	k8s.io/client-go v0.18.2
+	sigs.k8s.io/controller-runtime v0.6.0
 	sigs.k8s.io/controller-tools v0.2.7
 	sigs.k8s.io/kind v0.7.0
 )
