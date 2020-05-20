@@ -16,6 +16,7 @@ import (
 	any "github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/protobuf/testing/protocmp"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -238,9 +239,7 @@ func TestGetCluster(t *testing.T) {
 				t.Fatalf("error: %s", err)
 			}
 
-			if diff := cmp.Diff(test.expected, actual); diff != "" {
-				t.Errorf("diff: %s", diff)
-			}
+			diffCluster(t, test.expected, actual)
 		})
 	}
 }
@@ -440,8 +439,12 @@ func TestListClustersByNamespace(t *testing.T) {
 				t.Fatalf("failed %s", err)
 			}
 
-			if diff := cmp.Diff(test.expected, actual); diff != "" {
-				t.Errorf("diff: %s", diff)
+			if len(test.expected.Items) != len(actual.Items) {
+				t.Fatal("Different number of Items found")
+			}
+
+			for i, a := range actual.Items {
+				diffCluster(t, test.expected.Items[i], a)
 			}
 		})
 	}
@@ -702,9 +705,7 @@ func TestGetListener(t *testing.T) {
 				t.Fatalf("error: %s", err)
 			}
 
-			if diff := cmp.Diff(test.expected, actual); diff != "" {
-				t.Errorf("diff: %s", diff)
-			}
+			diffListener(t, test.expected, actual)
 		})
 	}
 }
@@ -964,8 +965,12 @@ func TestListListenersByNamespace(t *testing.T) {
 				t.Fatalf("failed %s", err)
 			}
 
-			if diff := cmp.Diff(test.expected, actual); diff != "" {
-				t.Errorf("diff: %s", diff)
+			if len(test.expected.Items) != len(actual.Items) {
+				t.Fatal("Different number of Items found")
+			}
+
+			for i, a := range actual.Items {
+				diffListener(t, test.expected.Items[i], a)
 			}
 		})
 	}
@@ -1080,9 +1085,7 @@ func TestGetRoute(t *testing.T) {
 				t.Fatalf("error: %s", err)
 			}
 
-			if diff := cmp.Diff(test.expected, actual); diff != "" {
-				t.Errorf("diff: %s", diff)
-			}
+			diffRoute(t, test.expected, actual)
 		})
 	}
 }
@@ -1200,8 +1203,12 @@ func TestListRoutesByNamespace(t *testing.T) {
 				t.Fatalf("failed %s", err)
 			}
 
-			if diff := cmp.Diff(test.expected, actual); diff != "" {
-				t.Errorf("diff: %s", diff)
+			if len(test.expected.Items) != len(actual.Items) {
+				t.Fatal("Different number of Items found")
+			}
+
+			for i, a := range actual.Items {
+				diffRoute(t, test.expected.Items[i], a)
 			}
 		})
 	}
@@ -1307,7 +1314,7 @@ func TestListPodsByNamespace(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(test.expected.Items, actual.Items, cmp.Comparer(podComparer)); diff != "" {
-				t.Errorf("diff: %s", diff)
+				t.Errorf("\n(-expected, +actual)\n%s", diff)
 			}
 		})
 	}
@@ -1328,4 +1335,64 @@ func podComparer(x, y corev1.Pod) bool {
 
 	return x.Name == y.Name &&
 		x.Namespace == y.Namespace
+}
+
+func diffCluster(t *testing.T, expected, actual *api.Cluster) {
+	t.Helper()
+
+	if diff := cmp.Diff(expected.TypeMeta, actual.TypeMeta); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.ObjectMeta, actual.ObjectMeta); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.Spec.WorkloadSelector, actual.Spec.WorkloadSelector); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.Spec.Config, actual.Spec.Config, protocmp.Transform()); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+}
+
+func diffListener(t *testing.T, expected, actual *api.Listener) {
+	t.Helper()
+
+	if diff := cmp.Diff(expected.TypeMeta, actual.TypeMeta); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.ObjectMeta, actual.ObjectMeta); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.Spec.WorkloadSelector, actual.Spec.WorkloadSelector); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.Spec.Config, actual.Spec.Config, protocmp.Transform()); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+}
+
+func diffRoute(t *testing.T, expected, actual *api.Route) {
+	t.Helper()
+
+	if diff := cmp.Diff(expected.TypeMeta, actual.TypeMeta); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.ObjectMeta, actual.ObjectMeta); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.Spec.WorkloadSelector, actual.Spec.WorkloadSelector); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
+
+	if diff := cmp.Diff(expected.Spec.Config, actual.Spec.Config, protocmp.Transform()); diff != "" {
+		t.Errorf("\n(-expected, +actual)\n%s", diff)
+	}
 }
