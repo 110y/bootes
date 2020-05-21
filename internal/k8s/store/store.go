@@ -1,14 +1,14 @@
 package store
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/encoding/protojson"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -56,15 +56,16 @@ type Store interface {
 type store struct {
 	client      client.Client
 	reader      client.Reader
-	unmarshaler *jsonpb.Unmarshaler
+	unmarshaler *protojson.UnmarshalOptions
 }
 
 func New(c client.Client, reader client.Reader) Store {
 	return &store{
 		client: c,
 		reader: reader,
-		unmarshaler: &jsonpb.Unmarshaler{
-			AllowUnknownFields: true,
+		unmarshaler: &protojson.UnmarshalOptions{
+			AllowPartial:   false,
+			DiscardUnknown: true,
 		},
 	}
 }
@@ -450,7 +451,7 @@ func (s *store) unmarshalClusterConfig(spec map[string]interface{}) (*envoyapi.C
 	}
 
 	cluster := &envoyapi.Cluster{}
-	if err := s.unmarshaler.Unmarshal(config, cluster); err != nil {
+	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(cluster)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}
 
@@ -488,7 +489,7 @@ func (s *store) unmarshalListenerConfig(spec map[string]interface{}) (*envoyapi.
 	}
 
 	listener := &envoyapi.Listener{}
-	if err := s.unmarshaler.Unmarshal(config, listener); err != nil {
+	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(listener)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}
 
@@ -526,7 +527,7 @@ func (s *store) unmarshalRouteConfig(spec map[string]interface{}) (*envoyapi.Rou
 	}
 
 	route := &envoyapi.RouteConfiguration{}
-	if err := s.unmarshaler.Unmarshal(config, route); err != nil {
+	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(route)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}
 
@@ -564,14 +565,14 @@ func (s *store) unmarshalEndpointConfig(spec map[string]interface{}) (*envoyapi.
 	}
 
 	endpoint := &envoyapi.ClusterLoadAssignment{}
-	if err := s.unmarshaler.Unmarshal(config, endpoint); err != nil {
+	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(endpoint)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}
 
 	return endpoint, nil
 }
 
-func unmarshalEnvoyConfig(spec map[string]interface{}) (*bytes.Buffer, error) {
+func unmarshalEnvoyConfig(spec map[string]interface{}) ([]byte, error) {
 	config, ok := spec["config"]
 	if !ok {
 		return nil, fmt.Errorf("spec.config not found")
@@ -582,5 +583,5 @@ func unmarshalEnvoyConfig(spec map[string]interface{}) (*bytes.Buffer, error) {
 		return nil, fmt.Errorf("failed to parse spec.config: %w", err)
 	}
 
-	return bytes.NewBuffer(j), nil
+	return j, nil
 }
