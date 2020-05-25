@@ -56,10 +56,12 @@ func run(ctx context.Context) int {
 	sc := xds.NewSnapshotCache(xl.WithName("snapshot_cache"))
 	c := cache.New(sc)
 
+	kl := l.WithName("k8s")
 	mgr, err := k8s.NewManager(&k8s.ManagerConfig{
 		HealthzServerPort: env.HealthProbeServerPort,
 		WebhookServerPort: env.K8SWebhookServerPort,
 		MetricsServerPort: env.K8SMetricsServerPort,
+		Logger:            kl.WithName("manager"),
 	})
 	if err != nil {
 		sl.Error(err, "failed to create k8s manager")
@@ -78,7 +80,7 @@ func run(ctx context.Context) int {
 		return 1
 	}
 
-	ctrl, err := k8s.NewController(mgr, s, c, l.WithName("k8s"))
+	ctrl, err := k8s.NewController(mgr, s, c, kl)
 	if err != nil {
 		sl.Error(err, "failed to create k8s controller")
 		return 1

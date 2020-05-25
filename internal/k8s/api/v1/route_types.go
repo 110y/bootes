@@ -1,18 +1,17 @@
 package v1
 
 import (
+	"errors"
+	"fmt"
+
 	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	"github.com/golang/protobuf/proto"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-var (
-	_ webhook.Validator = (*Route)(nil)
-	_ EnvoyResource     = (*Route)(nil)
-)
+var _ EnvoyResource = (*Route)(nil)
 
 // RouteList contains a list of Route
 type RouteList struct {
@@ -41,16 +40,42 @@ func (r *Route) GetWorkloadSelector() *WorkloadSelector {
 	return r.Spec.WorkloadSelector
 }
 
-func (r *Route) ValidateCreate() error {
-	return nil
+func UnmarshalRouteObject(object map[string]interface{}) (*Route, error) {
+	spec, err := extractSpecFromObject(object)
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := unmarshalRouteConfig(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	selector, err := unmarshalWorkloadSelector(spec)
+	if err != nil && !errors.Is(err, errWorkloadSelectorNotFound) {
+		return nil, err
+	}
+
+	return &Route{
+		Spec: RouteSpec{
+			WorkloadSelector: selector,
+			Config:           config,
+		},
+	}, nil
 }
 
-func (r *Route) ValidateUpdate(old runtime.Object) error {
-	return nil
-}
+func unmarshalRouteConfig(spec map[string]interface{}) (*envoyapi.RouteConfiguration, error) {
+	config, err := unmarshalEnvoyConfig(spec)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
+	}
 
-func (r *Route) ValidateDelete() error {
-	return nil
+	route := &envoyapi.RouteConfiguration{}
+	if err := unmarshaler.Unmarshal(config, proto.MessageV2(route)); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
+	}
+
+	return route, nil
 }
 
 func init() {

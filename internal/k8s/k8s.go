@@ -70,10 +70,6 @@ func setupRouteReconciler(mgr manager.Manager, s store.Store, c cache.Cache, l l
 		return fmt.Errorf("failed to setup route reconciler: %s", err)
 	}
 
-	if err := ctrl.NewWebhookManagedBy(mgr).For(&apiv1.Route{}).Complete(); err != nil {
-		return fmt.Errorf("failed to setup route webhook: %s", err)
-	}
-
 	return nil
 }
 

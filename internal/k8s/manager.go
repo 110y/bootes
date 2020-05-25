@@ -9,8 +9,10 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/k8s/internal/validator"
 )
 
 const (
@@ -19,6 +21,9 @@ const (
 	readyzEndpoint  = "/readyz"
 	healthzName     = "healthz"
 	readyzName      = "readyz"
+
+	validatingWebhookPrefix    = "/validate-bootes-io-v1-"
+	routeValidatingWebhookPath = validatingWebhookPrefix + "route"
 )
 
 func NewManager(c *ManagerConfig) (manager.Manager, error) {
@@ -56,6 +61,12 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 	if err := manager.AddReadyzCheck(readyzName, newHealthChecker()); err != nil {
 		return nil, fmt.Errorf("failed to register readyz checker: %w", err)
 	}
+
+	webhookServer := manager.GetWebhookServer()
+	webhookServer.Register(
+		routeValidatingWebhookPath,
+		&webhook.Admission{Handler: validator.NewRouteValidator(c.Logger.WithName("route_validator"))},
+	)
 
 	return manager, nil
 }

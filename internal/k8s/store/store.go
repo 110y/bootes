@@ -222,7 +222,7 @@ func (s *store) GetRoute(ctx context.Context, name, namespace string) (*api.Rout
 		return nil, fmt.Errorf("failed to get route: %w", err)
 	}
 
-	r, err := s.unmarshalRoute(route.Object)
+	r, err := api.UnmarshalRouteObject(route.Object)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func (s *store) ListRoutesByNamespace(ctx context.Context, namespace string) (*a
 
 	items := make([]*api.Route, len(routes.Items))
 	for i, c := range routes.Items {
-		route, err := s.unmarshalRoute(c.Object)
+		route, err := api.UnmarshalRouteObject(c.Object)
 		if err != nil {
 			return nil, err
 		}
@@ -494,44 +494,6 @@ func (s *store) unmarshalListenerConfig(spec map[string]interface{}) (*envoyapi.
 	}
 
 	return listener, nil
-}
-
-func (s *store) unmarshalRoute(object map[string]interface{}) (*api.Route, error) {
-	spec, err := extractSpecFromObject(object)
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := s.unmarshalRouteConfig(spec)
-	if err != nil {
-		return nil, err
-	}
-
-	selector, err := unmarshalWorkloadSelector(spec)
-	if err != nil && !errors.Is(err, errWorkloadSelectorNotFound) {
-		return nil, err
-	}
-
-	return &api.Route{
-		Spec: api.RouteSpec{
-			WorkloadSelector: selector,
-			Config:           config,
-		},
-	}, nil
-}
-
-func (s *store) unmarshalRouteConfig(spec map[string]interface{}) (*envoyapi.RouteConfiguration, error) {
-	config, err := unmarshalEnvoyConfig(spec)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
-	}
-
-	route := &envoyapi.RouteConfiguration{}
-	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(route)); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
-	}
-
-	return route, nil
 }
 
 func (s *store) unmarshalEndpoint(object map[string]interface{}) (*api.Endpoint, error) {
