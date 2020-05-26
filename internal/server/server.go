@@ -149,7 +149,7 @@ func run(ctx context.Context) int {
 
 		nerr := <-k8sErrChan
 		if nerr != nil {
-			sl.Error(err, "failed to stop k8s controller after xds grpc server returned error")
+			sl.Error(nerr, "failed to stop k8s controller after xds grpc server returned error")
 		}
 
 		return 1
@@ -160,7 +160,7 @@ func run(ctx context.Context) int {
 
 		nerr := <-xdsErrChan
 		if nerr != nil {
-			sl.Error(err, "failed to stop xds grpc server after k8s controller returned error")
+			sl.Error(nerr, "failed to stop xds grpc server after k8s controller returned error")
 		}
 
 		return 1
