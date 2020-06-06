@@ -1,14 +1,14 @@
 GOOS   := $(shell go env GOOS)
 GOARCH := $(shell go env GOARCH)
 
-KUBEBUILDER_VERSION := 2.3.1
-KUBEBUILDER_DIR     := $(shell pwd)/dev/kubebuilder
-KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
-KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
-
-DEV_DIR   := dev
+DEV_DIR   := $(shell pwd)/dev
 BIN_DIR   := $(DEV_DIR)/bin
 TOOLS_DIR := $(DEV_DIR)/tools
+
+KUBEBUILDER_VERSION := 2.3.1
+KUBEBUILDER_DIR     := $(DEV_DIR)/kubebuilder
+KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
+KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
 CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
 TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
