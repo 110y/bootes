@@ -6,18 +6,22 @@ KUBEBUILDER_DIR     := $(shell pwd)/dev/kubebuilder
 KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
-BIN_DIR := dev/bin
+DEV_DIR   := dev
+BIN_DIR   := $(DEV_DIR)/bin
+TOOLS_DIR := $(DEV_DIR)/tools
 
-CONTROLLER_GEN := $(BIN_DIR)/controller-gen
-TYPE_SCAFFOLD  := $(BIN_DIR)/type-scaffold
-KIND           := $(BIN_DIR)/kind
-KUBECTL        := $(BIN_DIR)/kubectl
-SKAFFOLD       := $(BIN_DIR)/skaffold
-KPT            := $(BIN_DIR)/kpt
-DELVE          := $(BIN_DIR)/dlv
+CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
+TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
+KIND           := $(abspath $(BIN_DIR)/kind)
+KUBECTL        := $(abspath $(BIN_DIR)/kubectl)
+SKAFFOLD       := $(abspath $(BIN_DIR)/skaffold)
+KPT            := $(abspath $(BIN_DIR)/kpt)
+DELVE          := $(abspath $(BIN_DIR)/dlv)
 
 KIND_NODE_VERSION := 1.18.2
 KIND_CLUSTER_NAME := bootes
+
+BUILD_TOOLS := cd $(TOOLS_DIR) && go build -o
 
 .PHONY: kubebuilder
 kubebuilder: $(KUBEBUILDER)
@@ -27,15 +31,15 @@ $(KUBEBUILDER):
 
 controlller-gen: $(CONTROLLER_GEN)
 $(CONTROLLER_GEN): go.sum
-	@go build -o $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
+	@$(BUILD_TOOLS) $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
 
 type-scaffold: $(TYPE_SCAFFOLD)
 $(TYPE_SCAFFOLD): go.sum
-	@go build -o $(TYPE_SCAFFOLD) sigs.k8s.io/controller-tools/cmd/type-scaffold
+	@$(BUILD_TOOLS) $(TYPE_SCAFFOLD) sigs.k8s.io/controller-tools/cmd/type-scaffold
 
 kind: $(KIND)
 $(KIND): go.sum
-	@go build -o $(KIND) sigs.k8s.io/kind
+	@$(BUILD_TOOLS) $(KIND) sigs.k8s.io/kind
 
 kubectl: $(KUBECTL)
 $(KUBECTL): dev/.kubectl-version
@@ -49,11 +53,11 @@ $(SKAFFOLD): dev/.skaffold-version
 
 kpt: $(KPT)
 $(KPT): go.sum
-	@go build -o $(KPT) github.com/GoogleContainerTools/kpt
+	@$(BUILD_TOOLS) $(KPT) github.com/GoogleContainerTools/kpt
 
 delve: $(DELVE)
 $(DELVE): go.sum
-	@go build -o $(DELVE) github.com/go-delve/delve/cmd/dlv
+	@$(BUILD_TOOLS) $(DELVE) github.com/go-delve/delve/cmd/dlv
 
 # .PHONY: manifests
 # manifests: $(CONTROLLER_GEN)
@@ -103,3 +107,7 @@ kind-apply-manifests: $(KUBECTL)
 	@$(KUBECTL) apply -f ./dev/kind/namespace.yaml
 	sleep 15 # wait for namespace booting
 	@$(KUBECTL) apply -f ./dev/kind/manifest/
+
+.PHONY: foo
+foo:
+	echo $(KIND)
