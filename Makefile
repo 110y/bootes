@@ -107,7 +107,3 @@ kind-apply-manifests: $(KUBECTL)
 	@$(KUBECTL) apply -f ./dev/kind/namespace.yaml
 	sleep 15 # wait for namespace booting
 	@$(KUBECTL) apply -f ./dev/kind/manifest/
-
-.PHONY: foo
-foo:
-	echo $(KIND)
