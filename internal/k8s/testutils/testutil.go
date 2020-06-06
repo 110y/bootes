@@ -10,7 +10,10 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/testing/protocmp"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sRuntime "k8s.io/apimachinery/pkg/runtime"
@@ -21,7 +24,33 @@ import (
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 )
 
-var s = k8sRuntime.NewScheme()
+var (
+	CmpOptProtoTransformer = cmp.FilterValues(func(x, _ interface{}) bool {
+		if _, ok := x.(proto.Message); ok {
+			return true
+		}
+		return false
+	}, protocmp.Transform())
+
+	CmpOptPodComparer = cmp.Comparer(func(x, y corev1.Pod) bool {
+		if len(x.Spec.Containers) != len(y.Spec.Containers) {
+			return false
+		}
+
+		for i, xc := range x.Spec.Containers {
+			yc := y.Spec.Containers[i]
+
+			if !cmp.Equal(xc, yc) {
+				return false
+			}
+		}
+
+		return x.Name == y.Name &&
+			x.Namespace == y.Namespace
+	})
+
+	s = k8sRuntime.NewScheme()
+)
 
 func TestK8SClient() (client.Client, func(), error) {
 	if err := scheme.AddToScheme(s); err != nil {
