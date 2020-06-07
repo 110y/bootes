@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
-	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache/v2"
-	resource "github.com/envoyproxy/go-control-plane/pkg/resource/v2"
+	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 
 	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
 	"github.com/110y/bootes/internal/observer/trace"

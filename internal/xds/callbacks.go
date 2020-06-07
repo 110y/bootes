@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	server "github.com/envoyproxy/go-control-plane/pkg/server/v2"
+	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	server "github.com/envoyproxy/go-control-plane/pkg/server/v3"
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 
@@ -51,7 +51,7 @@ func (c *callbacks) OnStreamClosed(streamID int64) {
 	streamLogger(c.loggerOnStreamClosed, streamID).Info("closed")
 }
 
-func (c *callbacks) OnStreamRequest(streamID int64, req *envoyapi.DiscoveryRequest) error {
+func (c *callbacks) OnStreamRequest(streamID int64, req *discovery.DiscoveryRequest) error {
 	ctx, span := trace.NewSpan(context.Background(), "Callbacks.OnStreamRequest")
 	defer span.End()
 
@@ -118,16 +118,16 @@ func (c *callbacks) OnStreamRequest(streamID int64, req *envoyapi.DiscoveryReque
 	return nil
 }
 
-func (c *callbacks) OnStreamResponse(streamID int64, req *envoyapi.DiscoveryRequest, _ *envoyapi.DiscoveryResponse) {
+func (c *callbacks) OnStreamResponse(streamID int64, req *discovery.DiscoveryRequest, _ *discovery.DiscoveryResponse) {
 	streamRequestLog(c.loggerOnStreamResponse, streamID, req)
 }
 
-func (c callbacks) OnFetchRequest(_ context.Context, req *envoyapi.DiscoveryRequest) error {
+func (c callbacks) OnFetchRequest(_ context.Context, req *discovery.DiscoveryRequest) error {
 	requestLog(c.loggerOnFetchRequest, req)
 	return nil
 }
 
-func (c *callbacks) OnFetchResponse(req *envoyapi.DiscoveryRequest, _ *envoyapi.DiscoveryResponse) {
+func (c *callbacks) OnFetchResponse(req *discovery.DiscoveryRequest, _ *discovery.DiscoveryResponse) {
 	requestLog(c.loggerOnFetchResponse, req)
 }
 
@@ -171,14 +171,14 @@ func streamLogger(l logr.Logger, id int64) logr.Logger {
 	return l.WithValues("stream", id)
 }
 
-func streamRequestLog(l logr.Logger, id int64, req *envoyapi.DiscoveryRequest) {
+func streamRequestLog(l logr.Logger, id int64, req *discovery.DiscoveryRequest) {
 	requestLog(streamLogger(l, id), req)
 }
 
-func requestLogger(l logr.Logger, req *envoyapi.DiscoveryRequest) logr.Logger {
+func requestLogger(l logr.Logger, req *discovery.DiscoveryRequest) logr.Logger {
 	return l.WithValues("current_version", req.VersionInfo, "node", req.GetNode().GetId())
 }
 
-func requestLog(l logr.Logger, req *envoyapi.DiscoveryRequest) {
+func requestLog(l logr.Logger, req *discovery.DiscoveryRequest) {
 	requestLogger(l, req).Info("request")
 }

@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net"
 
+	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	server "github.com/envoyproxy/go-control-plane/pkg/server/v3"
+	"github.com/go-logr/logr"
+	"google.golang.org/grpc"
+
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"
 	xdsgrpc "github.com/110y/bootes/internal/xds/internal/grpc"
-	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache/v2"
-	server "github.com/envoyproxy/go-control-plane/pkg/server/v2"
-	"github.com/go-logr/logr"
-	"google.golang.org/grpc"
 )
 
 type Server struct {
