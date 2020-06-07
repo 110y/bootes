@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"fmt"
-	"net/http"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -54,11 +53,11 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 		return nil, fmt.Errorf("failed to create manager: %w", err)
 	}
 
-	if err := manager.AddHealthzCheck(healthzName, newHealthChecker()); err != nil {
+	if err := manager.AddHealthzCheck(healthzName, healthz.Ping); err != nil {
 		return nil, fmt.Errorf("failed to register healthz checker: %w", err)
 	}
 
-	if err := manager.AddReadyzCheck(readyzName, newHealthChecker()); err != nil {
+	if err := manager.AddReadyzCheck(readyzName, healthz.Ping); err != nil {
 		return nil, fmt.Errorf("failed to register readyz checker: %w", err)
 	}
 
@@ -69,11 +68,4 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 	)
 
 	return manager, nil
-}
-
-func newHealthChecker() healthz.Checker {
-	return func(req *http.Request) error {
-		// TODO: implement more meaningful healthz
-		return nil
-	}
 }
