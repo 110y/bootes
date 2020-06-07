@@ -25,3 +25,25 @@ jobs:
 
       - name: Test
         run: make test
+
+  image:
+    if: github.ref == 'refs/heads/master'
+    needs: test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set Tag
+        id: tag
+        run: |
+          echo ::set-output name=value::$(git rev-parse --short HEAD)
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v1
+        with:
+          cache_froms: 110y/bootes:latest
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: 110y/bootes
+          tags: latest,${{ steps.tag.outputs.value }}
+          push: true
