@@ -1,7 +1,7 @@
 package v1
 
 import (
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,7 +29,7 @@ type Endpoint struct {
 
 type EndpointSpec struct {
 	WorkloadSelector *WorkloadSelector `json:"workloadSelector,omitempty"`
-	Config           *envoyapi.ClusterLoadAssignment
+	Config           *endpoint.ClusterLoadAssignment
 }
 
 func (l *Endpoint) GetWorkloadSelector() *WorkloadSelector {

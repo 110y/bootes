@@ -1,7 +1,7 @@
 package v1
 
 import (
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,7 +29,7 @@ type Route struct {
 
 type RouteSpec struct {
 	WorkloadSelector *WorkloadSelector `json:"workloadSelector,omitempty"`
-	Config           *envoyapi.RouteConfiguration
+	Config           *route.RouteConfiguration
 }
 
 func (c *Route) GetWorkloadSelector() *WorkloadSelector {

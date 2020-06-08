@@ -6,7 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/protobuf/encoding/protojson"
 	corev1 "k8s.io/api/core/v1"
@@ -444,13 +447,13 @@ func (s *store) unmarshalCluster(object map[string]interface{}) (*api.Cluster, e
 	}, nil
 }
 
-func (s *store) unmarshalClusterConfig(spec map[string]interface{}) (*envoyapi.Cluster, error) {
+func (s *store) unmarshalClusterConfig(spec map[string]interface{}) (*cluster.Cluster, error) {
 	config, err := unmarshalEnvoyConfig(spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
 	}
 
-	cluster := &envoyapi.Cluster{}
+	cluster := &cluster.Cluster{}
 	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(cluster)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}
@@ -482,13 +485,13 @@ func (s *store) unmarshalListener(object map[string]interface{}) (*api.Listener,
 	}, nil
 }
 
-func (s *store) unmarshalListenerConfig(spec map[string]interface{}) (*envoyapi.Listener, error) {
+func (s *store) unmarshalListenerConfig(spec map[string]interface{}) (*listener.Listener, error) {
 	config, err := unmarshalEnvoyConfig(spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
 	}
 
-	listener := &envoyapi.Listener{}
+	listener := &listener.Listener{}
 	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(listener)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}
@@ -520,13 +523,13 @@ func (s *store) unmarshalRoute(object map[string]interface{}) (*api.Route, error
 	}, nil
 }
 
-func (s *store) unmarshalRouteConfig(spec map[string]interface{}) (*envoyapi.RouteConfiguration, error) {
+func (s *store) unmarshalRouteConfig(spec map[string]interface{}) (*route.RouteConfiguration, error) {
 	config, err := unmarshalEnvoyConfig(spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
 	}
 
-	route := &envoyapi.RouteConfiguration{}
+	route := &route.RouteConfiguration{}
 	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(route)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}
@@ -558,13 +561,13 @@ func (s *store) unmarshalEndpoint(object map[string]interface{}) (*api.Endpoint,
 	}, nil
 }
 
-func (s *store) unmarshalEndpointConfig(spec map[string]interface{}) (*envoyapi.ClusterLoadAssignment, error) {
+func (s *store) unmarshalEndpointConfig(spec map[string]interface{}) (*endpoint.ClusterLoadAssignment, error) {
 	config, err := unmarshalEnvoyConfig(spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
 	}
 
-	endpoint := &envoyapi.ClusterLoadAssignment{}
+	endpoint := &endpoint.ClusterLoadAssignment{}
 	if err := s.unmarshaler.Unmarshal(config, proto.MessageV2(endpoint)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}
