@@ -36,7 +36,7 @@ By applying this example resource, Bootes sends one cluster configuration named 
 
 ## Installation
 
-See (this guide)[https://github.com/110y/bootes/blob/master/kubernetes/kpt/README.md].
+See [this guide](https://github.com/110y/bootes/blob/master/kubernetes/kpt/README.md).
 
 ## Supported Resource Types
 
