@@ -34,6 +34,10 @@ spec:
 
 By applying this example resource, Bootes sends one cluster configuration named `cluster-1` to connected data-planes.
 
+## Installation
+
+See (this guide)[https://github.com/110y/bootes/blob/master/kubernetes/kpt/README.md].
+
 ## Supported Resource Types
 
 - [x] Listener
