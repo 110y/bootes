@@ -7,6 +7,23 @@ on:
       - '*'
 
 jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    container:
+      image: golang:1.14.3-buster
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache
+        uses: actions/cache@v1
+        with:
+          path: /go/pkg/mod
+          key: go-mod-${{ hashFiles('go.sum') }}
+
+      - name: Vet
+        run: make vet
+
   test:
     runs-on: ubuntu-20.04
     container:
@@ -45,7 +62,10 @@ jobs:
 
   image:
     if: github.ref == 'refs/heads/master'
-    needs: test
+    needs:
+      - lint
+      - test
+      - build
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
