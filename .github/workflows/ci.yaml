@@ -43,6 +43,22 @@ jobs:
       - name: Test
         run: make test
 
+  test-e2e:
+    runs-on: ubuntu-20.04
+    # container:
+    #   image: golang:1.14.3-buster
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache
+        uses: actions/cache@v1
+        with:
+          path: /go/pkg/mod
+          key: go-mod-${{ hashFiles('go.sum') }}
+
+      - name: Test
+        run: make test-e2e
+
   build:
     runs-on: ubuntu-20.04
     container:

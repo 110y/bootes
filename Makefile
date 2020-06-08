@@ -91,6 +91,11 @@ run-debug: $(SKAFFOLD)
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
 	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml --port-forward=true
 
+.PHONY: run-deploy
+run-deploy: $(SKAFFOLD)
+	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
+	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) run --filename=./dev/skaffold/skaffold.yaml
+
 .PHONY: debug
 debug: $(DELVE)
 	@$(DELVE) connect --init=./dev/delve/init localhost:56268
@@ -102,6 +107,13 @@ vet:
 .PHONY: test
 test:
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) go test -count=1 -race --tags=test ./...
+
+.PHONY: test-e2e
+test-e2e:
+	@make kind-cluster
+	@make run-deploy
+	@$(KUBECTL) apply -f ./testdata/manifests
+	@$(KUBECTL) port-forward -n envoy envoy 15000 &
 
 .PHONY: kind-apply-manifests
 kind-apply-manifests: $(KUBECTL)
