@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
-	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
-	endpoint "github.com/envoyproxy/go-control-plane/envoy/api/v2/endpoint"
-	envoylistener "github.com/envoyproxy/go-control-plane/envoy/api/v2/listener"
-	route "github.com/envoyproxy/go-control-plane/envoy/api/v2/route"
-	hcm "github.com/envoyproxy/go-control-plane/envoy/config/filter/network/http_connection_manager/v2"
+	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
+	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
+	endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
+	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
+	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/duration"
@@ -152,13 +152,13 @@ func TestGetCluster(t *testing.T) {
 							"label-2": "2",
 						},
 					},
-					Config: &envoyapi.Cluster{
+					Config: &cluster.Cluster{
 						Name:           "cluster-1",
 						ConnectTimeout: &duration.Duration{Seconds: 1},
-						ClusterDiscoveryType: &envoyapi.Cluster_Type{
-							Type: envoyapi.Cluster_LOGICAL_DNS,
+						ClusterDiscoveryType: &cluster.Cluster_Type{
+							Type: cluster.Cluster_LOGICAL_DNS,
 						},
-						LoadAssignment: &envoyapi.ClusterLoadAssignment{
+						LoadAssignment: &endpoint.ClusterLoadAssignment{
 							ClusterName: "cluster-1",
 							Endpoints: []*endpoint.LocalityLbEndpoints{
 								{
@@ -191,13 +191,13 @@ func TestGetCluster(t *testing.T) {
 			name: "test-cluster-2",
 			expected: &api.Cluster{
 				Spec: api.ClusterSpec{
-					Config: &envoyapi.Cluster{
+					Config: &cluster.Cluster{
 						Name:           "cluster-2",
 						ConnectTimeout: &duration.Duration{Seconds: 1},
-						ClusterDiscoveryType: &envoyapi.Cluster_Type{
-							Type: envoyapi.Cluster_LOGICAL_DNS,
+						ClusterDiscoveryType: &cluster.Cluster_Type{
+							Type: cluster.Cluster_LOGICAL_DNS,
 						},
-						LoadAssignment: &envoyapi.ClusterLoadAssignment{
+						LoadAssignment: &endpoint.ClusterLoadAssignment{
 							ClusterName: "cluster-2",
 							Endpoints: []*endpoint.LocalityLbEndpoints{
 								{
@@ -354,13 +354,13 @@ func TestListClustersByNamespace(t *testing.T) {
 									"label-2": "2",
 								},
 							},
-							Config: &envoyapi.Cluster{
+							Config: &cluster.Cluster{
 								Name:           "cluster-1",
 								ConnectTimeout: &duration.Duration{Seconds: 1},
-								ClusterDiscoveryType: &envoyapi.Cluster_Type{
-									Type: envoyapi.Cluster_LOGICAL_DNS,
+								ClusterDiscoveryType: &cluster.Cluster_Type{
+									Type: cluster.Cluster_LOGICAL_DNS,
 								},
-								LoadAssignment: &envoyapi.ClusterLoadAssignment{
+								LoadAssignment: &endpoint.ClusterLoadAssignment{
 									ClusterName: "cluster-1",
 									Endpoints: []*endpoint.LocalityLbEndpoints{
 										{
@@ -390,13 +390,13 @@ func TestListClustersByNamespace(t *testing.T) {
 					},
 					&api.Cluster{
 						Spec: api.ClusterSpec{
-							Config: &envoyapi.Cluster{
+							Config: &cluster.Cluster{
 								Name:           "cluster-2",
 								ConnectTimeout: &duration.Duration{Seconds: 1},
-								ClusterDiscoveryType: &envoyapi.Cluster_Type{
-									Type: envoyapi.Cluster_LOGICAL_DNS,
+								ClusterDiscoveryType: &cluster.Cluster_Type{
+									Type: cluster.Cluster_LOGICAL_DNS,
 								},
-								LoadAssignment: &envoyapi.ClusterLoadAssignment{
+								LoadAssignment: &endpoint.ClusterLoadAssignment{
 									ClusterName: "cluster-2",
 									Endpoints: []*endpoint.LocalityLbEndpoints{
 										{
@@ -585,7 +585,7 @@ func TestGetListener(t *testing.T) {
 	cm, err := proto.Marshal(&hcm.HttpConnectionManager{
 		StatPrefix: "ingress_http",
 		RouteSpecifier: &hcm.HttpConnectionManager_RouteConfig{
-			RouteConfig: &envoyapi.RouteConfiguration{
+			RouteConfig: &route.RouteConfiguration{
 				Name: "route",
 				VirtualHosts: []*route.VirtualHost{
 					{
@@ -630,7 +630,7 @@ func TestGetListener(t *testing.T) {
 							"label-2": "2",
 						},
 					},
-					Config: &envoyapi.Listener{
+					Config: &listener.Listener{
 						Address: &core.Address{
 							Address: &core.Address_SocketAddress{
 								SocketAddress: &core.SocketAddress{
@@ -642,12 +642,12 @@ func TestGetListener(t *testing.T) {
 								},
 							},
 						},
-						FilterChains: []*envoylistener.FilterChain{
+						FilterChains: []*listener.FilterChain{
 							{
-								Filters: []*envoylistener.Filter{
+								Filters: []*listener.Filter{
 									{
 										Name: "envoy.http_connection_manager",
-										ConfigType: &envoylistener.Filter_TypedConfig{
+										ConfigType: &listener.Filter_TypedConfig{
 											TypedConfig: &any.Any{
 												TypeUrl: "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
 												Value:   cm,
@@ -665,7 +665,7 @@ func TestGetListener(t *testing.T) {
 			name: "test-listener-2",
 			expected: &api.Listener{
 				Spec: api.ListenerSpec{
-					Config: &envoyapi.Listener{
+					Config: &listener.Listener{
 						Address: &core.Address{
 							Address: &core.Address_SocketAddress{
 								SocketAddress: &core.SocketAddress{
@@ -677,12 +677,12 @@ func TestGetListener(t *testing.T) {
 								},
 							},
 						},
-						FilterChains: []*envoylistener.FilterChain{
+						FilterChains: []*listener.FilterChain{
 							{
-								Filters: []*envoylistener.Filter{
+								Filters: []*listener.Filter{
 									{
 										Name: "envoy.http_connection_manager",
-										ConfigType: &envoylistener.Filter_TypedConfig{
+										ConfigType: &listener.Filter_TypedConfig{
 											TypedConfig: &any.Any{
 												TypeUrl: "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
 												Value:   cm,
@@ -847,7 +847,7 @@ func TestListListenersByNamespace(t *testing.T) {
 	cm, err := proto.Marshal(&hcm.HttpConnectionManager{
 		StatPrefix: "ingress_http",
 		RouteSpecifier: &hcm.HttpConnectionManager_RouteConfig{
-			RouteConfig: &envoyapi.RouteConfiguration{
+			RouteConfig: &route.RouteConfiguration{
 				Name: "route",
 				VirtualHosts: []*route.VirtualHost{
 					{
@@ -892,7 +892,7 @@ func TestListListenersByNamespace(t *testing.T) {
 									"label-2": "2",
 								},
 							},
-							Config: &envoyapi.Listener{
+							Config: &listener.Listener{
 								Address: &core.Address{
 									Address: &core.Address_SocketAddress{
 										SocketAddress: &core.SocketAddress{
@@ -904,12 +904,12 @@ func TestListListenersByNamespace(t *testing.T) {
 										},
 									},
 								},
-								FilterChains: []*envoylistener.FilterChain{
+								FilterChains: []*listener.FilterChain{
 									{
-										Filters: []*envoylistener.Filter{
+										Filters: []*listener.Filter{
 											{
 												Name: "envoy.http_connection_manager",
-												ConfigType: &envoylistener.Filter_TypedConfig{
+												ConfigType: &listener.Filter_TypedConfig{
 													TypedConfig: &any.Any{
 														TypeUrl: "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
 														Value:   cm,
@@ -924,7 +924,7 @@ func TestListListenersByNamespace(t *testing.T) {
 					},
 					&api.Listener{
 						Spec: api.ListenerSpec{
-							Config: &envoyapi.Listener{
+							Config: &listener.Listener{
 								Address: &core.Address{
 									Address: &core.Address_SocketAddress{
 										SocketAddress: &core.SocketAddress{
@@ -936,12 +936,12 @@ func TestListListenersByNamespace(t *testing.T) {
 										},
 									},
 								},
-								FilterChains: []*envoylistener.FilterChain{
+								FilterChains: []*listener.FilterChain{
 									{
-										Filters: []*envoylistener.Filter{
+										Filters: []*listener.Filter{
 											{
 												Name: "envoy.http_connection_manager",
-												ConfigType: &envoylistener.Filter_TypedConfig{
+												ConfigType: &listener.Filter_TypedConfig{
 													TypedConfig: &any.Any{
 														TypeUrl: "type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager",
 														Value:   cm,
@@ -1053,7 +1053,7 @@ func TestGetRoute(t *testing.T) {
 							"label-2": "2",
 						},
 					},
-					Config: &envoyapi.RouteConfiguration{
+					Config: &route.RouteConfiguration{
 						Name: "route",
 						VirtualHosts: []*route.VirtualHost{
 							&route.VirtualHost{
@@ -1169,7 +1169,7 @@ func TestListRoutesByNamespace(t *testing.T) {
 									"label-2": "2",
 								},
 							},
-							Config: &envoyapi.RouteConfiguration{
+							Config: &route.RouteConfiguration{
 								Name: "route",
 								VirtualHosts: []*route.VirtualHost{
 									&route.VirtualHost{

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	"github.com/golang/protobuf/proto"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -33,7 +33,7 @@ type Route struct {
 
 type RouteSpec struct {
 	WorkloadSelector *WorkloadSelector `json:"workloadSelector,omitempty"`
-	Config           *envoyapi.RouteConfiguration
+	Config           *route.RouteConfiguration
 }
 
 func (r *Route) GetWorkloadSelector() *WorkloadSelector {
@@ -64,13 +64,13 @@ func UnmarshalRouteObject(object map[string]interface{}) (*Route, error) {
 	}, nil
 }
 
-func unmarshalRouteConfig(spec map[string]interface{}) (*envoyapi.RouteConfiguration, error) {
+func unmarshalRouteConfig(spec map[string]interface{}) (*route.RouteConfiguration, error) {
 	config, err := unmarshalEnvoyConfig(spec)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal envoy configuration: %w", err)
 	}
 
-	route := &envoyapi.RouteConfiguration{}
+	route := &route.RouteConfiguration{}
 	if err := unmarshaler.Unmarshal(config, proto.MessageV2(route)); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal spec.config: %w", err)
 	}

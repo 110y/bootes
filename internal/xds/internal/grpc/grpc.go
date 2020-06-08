@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v2"
+	discovery "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
 	"google.golang.org/grpc"
 	channelz "google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/reflection"

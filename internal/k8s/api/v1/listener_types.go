@@ -1,7 +1,7 @@
 package v1
 
 import (
-	envoyapi "github.com/envoyproxy/go-control-plane/envoy/api/v2"
+	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,7 +29,7 @@ type Listener struct {
 
 type ListenerSpec struct {
 	WorkloadSelector *WorkloadSelector `json:"workloadSelector,omitempty"`
-	Config           *envoyapi.Listener
+	Config           *listener.Listener
 }
 
 func (l *Listener) GetWorkloadSelector() *WorkloadSelector {
