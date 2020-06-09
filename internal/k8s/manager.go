@@ -28,6 +28,14 @@ const (
 	pprofTraceEndpoint   = pprofEndpointPrefix + "/trace"
 )
 
+var pprofHandlerMap = map[string]http.HandlerFunc{
+	pprofIndexEndpoint:   pprof.Index,
+	pprofCmdlineEndpoint: pprof.Cmdline,
+	pprofProfileEndpoint: pprof.Profile,
+	pprofSymbolEndpoint:  pprof.Symbol,
+	pprofTraceEndpoint:   pprof.Trace,
+}
+
 func NewManager(c *ManagerConfig) (manager.Manager, error) {
 	s := runtime.NewScheme()
 	if err := scheme.AddToScheme(s); err != nil {
@@ -61,33 +69,11 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 		return nil, fmt.Errorf("failed to register readyz checker: %w", err)
 	}
 
-	if err := setPprofHandlelrs(manager); err != nil {
-		return nil, fmt.Errorf("failed to register pprof handlers: %w", err)
+	for endpoint, handler := range pprofHandlerMap {
+		if err := manager.AddMetricsExtraHandler(endpoint, http.HandlerFunc(handler)); err != nil {
+			return nil, fmt.Errorf("failed to register pprof handlers: %w", err)
+		}
 	}
 
 	return manager, nil
-}
-
-func setPprofHandlelrs(mgr manager.Manager) error {
-	if err := mgr.AddMetricsExtraHandler(pprofIndexEndpoint, http.HandlerFunc(pprof.Index)); err != nil {
-		return err
-	}
-
-	if err := mgr.AddMetricsExtraHandler(pprofCmdlineEndpoint, http.HandlerFunc(pprof.Cmdline)); err != nil {
-		return err
-	}
-
-	if err := mgr.AddMetricsExtraHandler(pprofProfileEndpoint, http.HandlerFunc(pprof.Profile)); err != nil {
-		return err
-	}
-
-	if err := mgr.AddMetricsExtraHandler(pprofSymbolEndpoint, http.HandlerFunc(pprof.Symbol)); err != nil {
-		return err
-	}
-
-	if err := mgr.AddMetricsExtraHandler(pprofTraceEndpoint, http.HandlerFunc(pprof.Trace)); err != nil {
-		return err
-	}
-
-	return nil
 }
