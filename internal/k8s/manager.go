@@ -2,6 +2,8 @@ package k8s
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/pprof"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -17,6 +19,13 @@ const (
 	readyzEndpoint  = "/readyz"
 	healthzName     = "healthz"
 	readyzName      = "readyz"
+
+	pprofEndpointPrefix  = "/debug/pprof"
+	pprofIndexEndpoint   = pprofEndpointPrefix + "/"
+	pprofCmdlineEndpoint = pprofEndpointPrefix + "/cmdlilne"
+	pprofProfileEndpoint = pprofEndpointPrefix + "/profile"
+	pprofSymbolEndpoint  = pprofEndpointPrefix + "/symbol"
+	pprofTraceEndpoint   = pprofEndpointPrefix + "/trace"
 )
 
 func NewManager(c *ManagerConfig) (manager.Manager, error) {
@@ -52,5 +61,33 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 		return nil, fmt.Errorf("failed to register readyz checker: %w", err)
 	}
 
+	if err := setPprofHandlelrs(manager); err != nil {
+		return nil, fmt.Errorf("failed to register pprof handlers: %w", err)
+	}
+
 	return manager, nil
+}
+
+func setPprofHandlelrs(mgr manager.Manager) error {
+	if err := mgr.AddMetricsExtraHandler(pprofIndexEndpoint, http.HandlerFunc(pprof.Index)); err != nil {
+		return err
+	}
+
+	if err := mgr.AddMetricsExtraHandler(pprofCmdlineEndpoint, http.HandlerFunc(pprof.Cmdline)); err != nil {
+		return err
+	}
+
+	if err := mgr.AddMetricsExtraHandler(pprofProfileEndpoint, http.HandlerFunc(pprof.Profile)); err != nil {
+		return err
+	}
+
+	if err := mgr.AddMetricsExtraHandler(pprofSymbolEndpoint, http.HandlerFunc(pprof.Symbol)); err != nil {
+		return err
+	}
+
+	if err := mgr.AddMetricsExtraHandler(pprofTraceEndpoint, http.HandlerFunc(pprof.Trace)); err != nil {
+		return err
+	}
+
+	return nil
 }
