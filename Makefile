@@ -102,8 +102,8 @@ debug: $(DELVE)
 	@$(DELVE) connect --init=./dev/delve/init localhost:56268
 
 .PHONY: fmt
-fmt:
-	! $(GOFUMPT) -s -d ./ | grep -E '^'
+fmt: $(GOFUMPT)
+	@! $(GOFUMPT) -s -d ./ | grep -E '^'
 
 .PHONY: vet
 vet:

@@ -21,6 +21,9 @@ jobs:
           path: /go/pkg/mod
           key: go-mod-${{ hashFiles('go.sum') }}
 
+      - name: Fmt
+        run: make fmt
+
       - name: Vet
         run: make vet
 
