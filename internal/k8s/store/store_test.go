@@ -50,7 +50,7 @@ func TestGetCluster(t *testing.T) {
 	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.ClusterKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -92,7 +92,7 @@ func TestGetCluster(t *testing.T) {
 				},
 			},
 		},
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.ClusterKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -252,7 +252,7 @@ func TestListClustersByNamespace(t *testing.T) {
 	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.ClusterKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -294,7 +294,7 @@ func TestListClustersByNamespace(t *testing.T) {
 				},
 			},
 		},
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.ClusterKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -346,7 +346,7 @@ func TestListClustersByNamespace(t *testing.T) {
 		"should list clusters": {
 			expected: &api.ClusterList{
 				Items: []*api.Cluster{
-					&api.Cluster{
+					{
 						Spec: api.ClusterSpec{
 							WorkloadSelector: &api.WorkloadSelector{
 								Labels: map[string]string{
@@ -388,7 +388,7 @@ func TestListClustersByNamespace(t *testing.T) {
 							},
 						},
 					},
-					&api.Cluster{
+					{
 						Spec: api.ClusterSpec{
 							Config: &cluster.Cluster{
 								Name:           "cluster-2",
@@ -460,7 +460,7 @@ func TestGetListener(t *testing.T) {
 	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.ListenerKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -519,7 +519,7 @@ func TestGetListener(t *testing.T) {
 				},
 			},
 		},
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.ListenerKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -722,7 +722,7 @@ func TestListListenersByNamespace(t *testing.T) {
 	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.ListenerKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -781,7 +781,7 @@ func TestListListenersByNamespace(t *testing.T) {
 				},
 			},
 		},
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.ListenerKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -884,7 +884,7 @@ func TestListListenersByNamespace(t *testing.T) {
 		"should list listeners": {
 			&api.ListenerList{
 				Items: []*api.Listener{
-					&api.Listener{
+					{
 						Spec: api.ListenerSpec{
 							WorkloadSelector: &api.WorkloadSelector{
 								Labels: map[string]string{
@@ -922,7 +922,7 @@ func TestListListenersByNamespace(t *testing.T) {
 							},
 						},
 					},
-					&api.Listener{
+					{
 						Spec: api.ListenerSpec{
 							Config: &listener.Listener{
 								Address: &core.Address{
@@ -990,7 +990,7 @@ func TestGetRoute(t *testing.T) {
 	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.RouteKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -1056,7 +1056,7 @@ func TestGetRoute(t *testing.T) {
 					Config: &route.RouteConfiguration{
 						Name: "route",
 						VirtualHosts: []*route.VirtualHost{
-							&route.VirtualHost{
+							{
 								Name:    "service",
 								Domains: []string{"*"},
 								Routes: []*route.Route{
@@ -1106,7 +1106,7 @@ func TestListRoutesByNamespace(t *testing.T) {
 	namespace := testutils.NewNamespace(t, ctx, k8sClient)
 
 	fixtures := []*unstructured.Unstructured{
-		&unstructured.Unstructured{
+		{
 			Object: map[string]interface{}{
 				"kind":       api.RouteKind,
 				"apiVersion": api.GroupVersion.String(),
@@ -1161,7 +1161,7 @@ func TestListRoutesByNamespace(t *testing.T) {
 		"should list clusters": {
 			expected: &api.RouteList{
 				Items: []*api.Route{
-					&api.Route{
+					{
 						Spec: api.RouteSpec{
 							WorkloadSelector: &api.WorkloadSelector{
 								Labels: map[string]string{
@@ -1172,7 +1172,7 @@ func TestListRoutesByNamespace(t *testing.T) {
 							Config: &route.RouteConfiguration{
 								Name: "route",
 								VirtualHosts: []*route.VirtualHost{
-									&route.VirtualHost{
+									{
 										Name:    "service",
 										Domains: []string{"*"},
 										Routes: []*route.Route{
