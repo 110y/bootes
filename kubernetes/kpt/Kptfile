@@ -64,6 +64,11 @@ openAPI:
         setter:
           name: enable-xds-grpc-channelz
           value: 'false'
+    io.k8s.cli.setters.enable-k8s-validating-webhook:
+      x-k8s-cli:
+        setter:
+          name: enable-k8s-validating-webhook
+          value: 'false'
     io.k8s.cli.setters.enable-xds-grpc-reflection:
       x-k8s-cli:
         setter:

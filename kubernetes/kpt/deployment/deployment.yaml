@@ -67,6 +67,8 @@ spec:
           value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-xds-grpc-reflection"}
         - name: K8S_METRICS_SERVER_PORT
           value: '4000'
+        - name: K8S_ENABLE_VALIDATING_WEBHOOK
+          value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-k8s-validating-webhook"}
         - name: TRACE_USE_STDOUT
           value: 'false' # {"$ref":"#/definitions/io.k8s.cli.setters.enable-stdout-trace"}
         - name: TRACE_USE_JAEGER

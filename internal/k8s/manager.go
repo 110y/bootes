@@ -78,11 +78,13 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 		return nil, fmt.Errorf("failed to register readyz checker: %w", err)
 	}
 
-	webhookServer := manager.GetWebhookServer()
-	webhookServer.Register(
-		routeValidatingWebhookPath,
-		&webhook.Admission{Handler: validator.NewRouteValidator(c.Logger.WithName("route_validator"))},
-	)
+	if c.EnableValidatingWebhook {
+		webhookServer := manager.GetWebhookServer()
+		webhookServer.Register(
+			routeValidatingWebhookPath,
+			&webhook.Admission{Handler: validator.NewRouteValidator(c.Logger.WithName("route_validator"))},
+		)
+	}
 
 	for endpoint, handler := range pprofHandlerMap {
 		if err := manager.AddMetricsExtraHandler(endpoint, http.HandlerFunc(handler)); err != nil {

@@ -58,10 +58,11 @@ func run(ctx context.Context) int {
 
 	kl := l.WithName("k8s")
 	mgr, err := k8s.NewManager(&k8s.ManagerConfig{
-		HealthzServerPort: env.HealthProbeServerPort,
-		WebhookServerPort: env.K8SWebhookServerPort,
-		MetricsServerPort: env.K8SMetricsServerPort,
-		Logger:            kl.WithName("manager"),
+		HealthzServerPort:       env.HealthProbeServerPort,
+		WebhookServerPort:       env.K8SWebhookServerPort,
+		MetricsServerPort:       env.K8SMetricsServerPort,
+		EnableValidatingWebhook: env.K8SEnableValidatingWebhook,
+		Logger:                  kl.WithName("manager"),
 	})
 	if err != nil {
 		sl.Error(err, "failed to create k8s manager")

@@ -25,6 +25,8 @@ spec:
           value: '3000'
         - name: K8S_METRICS_SERVER_PORT
           value: '4000'
+        - name: K8S_ENABLE_VALIDATING_WEBHOOK
+          value: 'true'
         - name: TRACE_USE_STDOUT
           value: 'true'
         - name: TRACE_USE_JAEGER

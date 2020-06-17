@@ -5,8 +5,9 @@ import (
 )
 
 type ManagerConfig struct {
-	HealthzServerPort int
-	WebhookServerPort int
-	MetricsServerPort int
-	Logger            logr.Logger
+	HealthzServerPort       int
+	WebhookServerPort       int
+	MetricsServerPort       int
+	EnableValidatingWebhook bool
+	Logger                  logr.Logger
 }
