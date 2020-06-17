@@ -5,7 +5,3 @@ type Config struct {
 	EnableGRPCChannelz   bool
 	EnableGRPCReflection bool
 }
-
-func (c *Config) validate() error {
-	return nil
-}

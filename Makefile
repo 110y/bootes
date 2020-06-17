@@ -19,6 +19,7 @@ SKAFFOLD       := $(abspath $(BIN_DIR)/skaffold)
 KPT            := $(abspath $(BIN_DIR)/kpt)
 DELVE          := $(abspath $(BIN_DIR)/dlv)
 GOFUMPT        := $(abspath $(BIN_DIR)/gofumpt)
+GOLANGCI_LINT  := $(abspath $(BIN_DIR)/golangci-lint)
 
 KIND_NODE_VERSION := 1.18.2
 KIND_CLUSTER_NAME := bootes
@@ -65,6 +66,10 @@ gofumpt: $(GOFUMPT)
 $(GOFUMPT): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(GOFUMPT) mvdan.cc/gofumpt
 
+golangci-lint: $(GOLANGCI_LINT)
+$(GOLANGCI_LINT): $(TOOLS_SUM)
+	@$(BUILD_TOOLS) $(GOLANGCI_LINT) github.com/golangci/golangci-lint/cmd/golangci-lint
+
 # .PHONY: manifests
 # manifests: $(CONTROLLER_GEN)
 #         @$(CONTROLLER_GEN) crd paths=./internal/k8s/api/... output:crd:dir=./kubernetes/kpt output:stdout
@@ -105,9 +110,9 @@ debug: $(DELVE)
 fmt: $(GOFUMPT)
 	@! $(GOFUMPT) -s -d ./ | grep -E '^'
 
-.PHONY: vet
-vet:
-	go vet -tags=test ./...
+.PHONY: lint
+lint: $(GOLANGCI_LINT)
+	@$(GOLANGCI_LINT) run --config ./.golangci.yml ./...
 
 .PHONY: test
 test:

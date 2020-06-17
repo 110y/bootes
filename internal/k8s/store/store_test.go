@@ -12,10 +12,11 @@ import (
 	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
-	"github.com/golang/protobuf/proto"
+	protov1 "github.com/golang/protobuf/proto"
 	any "github.com/golang/protobuf/ptypes/any"
 	"github.com/golang/protobuf/ptypes/duration"
 	"github.com/google/go-cmp/cmp"
+	"google.golang.org/protobuf/proto"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -32,7 +33,7 @@ func TestMain(m *testing.M) {
 	os.Exit(func() int {
 		cli, done, err := testutils.TestK8SClient()
 		if err != nil {
-			fmt.Fprintf(os.Stdout, fmt.Sprintf("failed to create k8s client: %s", err))
+			fmt.Fprint(os.Stdout, fmt.Sprintf("failed to create k8s client: %s", err))
 			return 1
 		}
 		defer done()
@@ -582,7 +583,7 @@ func TestGetListener(t *testing.T) {
 
 	s := store.New(k8sClient, k8sClient)
 
-	cm, err := proto.Marshal(&hcm.HttpConnectionManager{
+	cm, err := proto.Marshal(protov1.MessageV2(&hcm.HttpConnectionManager{
 		StatPrefix: "ingress_http",
 		RouteSpecifier: &hcm.HttpConnectionManager_RouteConfig{
 			RouteConfig: &route.RouteConfiguration{
@@ -611,7 +612,7 @@ func TestGetListener(t *testing.T) {
 				},
 			},
 		},
-	})
+	}))
 	if err != nil {
 		t.Fatalf("failed to marshal fixture proto: %s", err)
 	}
@@ -844,7 +845,7 @@ func TestListListenersByNamespace(t *testing.T) {
 
 	s := store.New(k8sClient, k8sClient)
 
-	cm, err := proto.Marshal(&hcm.HttpConnectionManager{
+	cm, err := proto.Marshal(protov1.MessageV2(&hcm.HttpConnectionManager{
 		StatPrefix: "ingress_http",
 		RouteSpecifier: &hcm.HttpConnectionManager_RouteConfig{
 			RouteConfig: &route.RouteConfiguration{
@@ -873,7 +874,7 @@ func TestListListenersByNamespace(t *testing.T) {
 				},
 			},
 		},
-	})
+	}))
 	if err != nil {
 		t.Fatalf("failed to marshal fixture proto: %s", err)
 	}

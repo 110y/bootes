@@ -24,8 +24,8 @@ jobs:
       - name: Fmt
         run: make fmt
 
-      - name: Vet
-        run: make vet
+      - name: Lint
+        run: make lint
 
   test:
     runs-on: ubuntu-20.04
