@@ -2,6 +2,8 @@ package k8s
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/pprof"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -23,7 +25,22 @@ const (
 
 	validatingWebhookPrefix    = "/validate-bootes-io-v1-"
 	routeValidatingWebhookPath = validatingWebhookPrefix + "route"
+
+	pprofEndpointPrefix  = "/debug/pprof"
+	pprofIndexEndpoint   = pprofEndpointPrefix + "/"
+	pprofCmdlineEndpoint = pprofEndpointPrefix + "/cmdlilne"
+	pprofProfileEndpoint = pprofEndpointPrefix + "/profile"
+	pprofSymbolEndpoint  = pprofEndpointPrefix + "/symbol"
+	pprofTraceEndpoint   = pprofEndpointPrefix + "/trace"
 )
+
+var pprofHandlerMap = map[string]http.HandlerFunc{
+	pprofIndexEndpoint:   pprof.Index,
+	pprofCmdlineEndpoint: pprof.Cmdline,
+	pprofProfileEndpoint: pprof.Profile,
+	pprofSymbolEndpoint:  pprof.Symbol,
+	pprofTraceEndpoint:   pprof.Trace,
+}
 
 func NewManager(c *ManagerConfig) (manager.Manager, error) {
 	s := runtime.NewScheme()
@@ -66,6 +83,12 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 		routeValidatingWebhookPath,
 		&webhook.Admission{Handler: validator.NewRouteValidator(c.Logger.WithName("route_validator"))},
 	)
+
+	for endpoint, handler := range pprofHandlerMap {
+		if err := manager.AddMetricsExtraHandler(endpoint, http.HandlerFunc(handler)); err != nil {
+			return nil, fmt.Errorf("failed to register pprof handlers: %w", err)
+		}
+	}
 
 	return manager, nil
 }

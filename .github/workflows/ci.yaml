@@ -7,6 +7,26 @@ on:
       - '*'
 
 jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    container:
+      image: golang:1.14.3-buster
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache
+        uses: actions/cache@v1
+        with:
+          path: /go/pkg/mod
+          key: go-mod-${{ hashFiles('go.sum') }}
+
+      - name: Fmt
+        run: make fmt
+
+      - name: Lint
+        run: make lint
+
   test:
     runs-on: ubuntu-20.04
     container:
@@ -26,9 +46,29 @@ jobs:
       - name: Test
         run: make test
 
+  build:
+    runs-on: ubuntu-20.04
+    container:
+      image: golang:1.14.3-buster
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache
+        uses: actions/cache@v1
+        with:
+          path: /go/pkg/mod
+          key: go-mod-${{ hashFiles('go.sum') }}
+
+      - name: Build
+        run: go build -o bootes .
+
   image:
     if: github.ref == 'refs/heads/master'
-    needs: test
+    needs:
+      - lint
+      - test
+      - build
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2

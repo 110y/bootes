@@ -6,6 +6,7 @@ GOARCH := $(shell go env GOARCH)
 DEV_DIR   := $(shell pwd)/dev
 BIN_DIR   := $(DEV_DIR)/bin
 TOOLS_DIR := $(DEV_DIR)/tools
+TOOLS_SUM := $(TOOLS_DIR)/go.sum
 
 KUBEBUILDER_VERSION := 2.3.1
 KUBEBUILDER_DIR     := $(DEV_DIR)/kubebuilder
@@ -19,6 +20,8 @@ KUBECTL        := $(abspath $(BIN_DIR)/kubectl)
 SKAFFOLD       := $(abspath $(BIN_DIR)/skaffold)
 KPT            := $(abspath $(BIN_DIR)/kpt)
 DELVE          := $(abspath $(BIN_DIR)/dlv)
+GOFUMPT        := $(abspath $(BIN_DIR)/gofumpt)
+GOLANGCI_LINT  := $(abspath $(BIN_DIR)/golangci-lint)
 
 KIND_NODE_VERSION := 1.18.2
 KIND_CLUSTER_NAME := bootes
@@ -32,15 +35,15 @@ $(KUBEBUILDER):
 	@mv /tmp/kubebuilder_$(KUBEBUILDER_VERSION)_$(GOOS)_$(GOARCH) $(KUBEBUILDER_DIR)
 
 controlller-gen: $(CONTROLLER_GEN)
-$(CONTROLLER_GEN): go.sum
+$(CONTROLLER_GEN): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
 
 type-scaffold: $(TYPE_SCAFFOLD)
-$(TYPE_SCAFFOLD): go.sum
+$(TYPE_SCAFFOLD): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(TYPE_SCAFFOLD) sigs.k8s.io/controller-tools/cmd/type-scaffold
 
 kind: $(KIND)
-$(KIND): go.sum
+$(KIND): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(KIND) sigs.k8s.io/kind
 
 kubectl: $(KUBECTL)
@@ -54,12 +57,20 @@ $(SKAFFOLD): dev/.skaffold-version
 	@chmod +x $(SKAFFOLD)
 
 kpt: $(KPT)
-$(KPT): go.sum
+$(KPT): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(KPT) github.com/GoogleContainerTools/kpt
 
 delve: $(DELVE)
-$(DELVE): go.sum
+$(DELVE): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(DELVE) github.com/go-delve/delve/cmd/dlv
+
+gofumpt: $(GOFUMPT)
+$(GOFUMPT): $(TOOLS_SUM)
+	@$(BUILD_TOOLS) $(GOFUMPT) mvdan.cc/gofumpt
+
+golangci-lint: $(GOLANGCI_LINT)
+$(GOLANGCI_LINT): $(TOOLS_SUM)
+	@$(BUILD_TOOLS) $(GOLANGCI_LINT) github.com/golangci/golangci-lint/cmd/golangci-lint
 
 # .PHONY: manifests
 # manifests: $(CONTROLLER_GEN)
@@ -99,6 +110,14 @@ run-debug: $(SKAFFOLD)
 .PHONY: debug
 debug: $(DELVE)
 	@$(DELVE) connect --init=./dev/delve/init localhost:56268
+
+.PHONY: fmt
+fmt: $(GOFUMPT)
+	@! $(GOFUMPT) -s -d ./ | grep -E '^'
+
+.PHONY: lint
+lint: $(GOLANGCI_LINT)
+	@$(GOLANGCI_LINT) run --config ./.golangci.yml ./...
 
 .PHONY: test
 test:
