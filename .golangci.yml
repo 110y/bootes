@@ -1,0 +1,66 @@
+---
+run:
+  timeout: 3m
+  issues-exit-code: 1
+  tests: true
+  build-tags:
+    - test
+  skip-dirs-use-default: true
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: false
+
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  exhaustive:
+    default-signifies-exhaustive: false
+
+  govet:
+    enable-all: true
+    check-shadowing: true
+
+  unparam:
+    check-exported: false
+
+  unused:
+    check-exported: false
+
+linters:
+  disable-all: true
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - unused
+    - unparam
+  fast: false
+
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+  exclude-rules:
+    # these rules are for the sake of deprecated protobuf pakcage which is used by Envoy
+    - path: internal/k8s/store/store_test.go
+      linters:
+        - staticcheck
+      text: "SA1019:"
+    - path: internal/k8s/store/store.go
+      linters:
+        - staticcheck
+      text: "SA1019:"
+    - path: internal/k8s/testutils/testutil.go
+      linters:
+        - staticcheck
+      text: "SA1019:"

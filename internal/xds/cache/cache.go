@@ -43,7 +43,7 @@ func (c *cache) IsCachedNode(node string) bool {
 }
 
 func (c *cache) UpdateAllResources(ctx context.Context, node, version string, clusters []*apiv1.Cluster, listeners []*apiv1.Listener, routes []*apiv1.Route, endpoints []*apiv1.Endpoint) error {
-	ctx, span := trace.NewSpan(ctx, "Cache.UpdateAllResources")
+	_, span := trace.NewSpan(ctx, "Cache.UpdateAllResources")
 	defer span.End()
 
 	cr := make([]types.Resource, len(clusters))
@@ -84,7 +84,7 @@ func (c *cache) UpdateAllResources(ctx context.Context, node, version string, cl
 }
 
 func (c *cache) UpdateClusters(ctx context.Context, node, version string, clusters []*apiv1.Cluster) error {
-	ctx, span := trace.NewSpan(ctx, "Cache.UpdateClusters")
+	_, span := trace.NewSpan(ctx, "Cache.UpdateClusters")
 	defer span.End()
 
 	snapshot := c.newClusterSnapshot(node, version, clusters)
@@ -96,7 +96,7 @@ func (c *cache) UpdateClusters(ctx context.Context, node, version string, cluste
 }
 
 func (c *cache) UpdateListeners(ctx context.Context, node, version string, listeners []*apiv1.Listener) error {
-	ctx, span := trace.NewSpan(ctx, "Cache.UpdateListeners")
+	_, span := trace.NewSpan(ctx, "Cache.UpdateListeners")
 	defer span.End()
 
 	snapshot := c.newListenerSnapshot(node, version, listeners)
@@ -108,7 +108,7 @@ func (c *cache) UpdateListeners(ctx context.Context, node, version string, liste
 }
 
 func (c *cache) UpdateRoutes(ctx context.Context, node, version string, routes []*apiv1.Route) error {
-	ctx, span := trace.NewSpan(ctx, "Cache.UpdateRoutes")
+	_, span := trace.NewSpan(ctx, "Cache.UpdateRoutes")
 	defer span.End()
 
 	snapshot := c.newRouteSnapshot(node, version, routes)
@@ -120,7 +120,7 @@ func (c *cache) UpdateRoutes(ctx context.Context, node, version string, routes [
 }
 
 func (c *cache) UpdateEndpoints(ctx context.Context, node, version string, endpoints []*apiv1.Endpoint) error {
-	ctx, span := trace.NewSpan(ctx, "Cache.UpdateEndpoints")
+	_, span := trace.NewSpan(ctx, "Cache.UpdateEndpoints")
 	defer span.End()
 
 	snapshot := c.newEndpointSnapshot(node, version, endpoints)

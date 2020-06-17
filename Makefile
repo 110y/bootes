@@ -114,10 +114,6 @@ fmt: $(GOFUMPT)
 lint: $(GOLANGCI_LINT)
 	@$(GOLANGCI_LINT) run --config ./.golangci.yml ./...
 
-.PHONY: vet
-vet:
-	go vet -tags=test ./...
-
 .PHONY: test
 test:
 	KUBEBUILDER_ASSETS=$(KUBEBUILDER_ASSETS) go test -count=1 -race --tags=test ./...
