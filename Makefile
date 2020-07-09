@@ -11,11 +11,14 @@ KUBEBUILDER_DIR     := $(DEV_DIR)/kubebuilder
 KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
+KUBECTL_VERSION  := 1.18.5
+SKAFFOLD_VERSION := 1.12.0
+
 CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
 TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
 KIND           := $(abspath $(BIN_DIR)/kind)
-KUBECTL        := $(abspath $(BIN_DIR)/kubectl)
-SKAFFOLD       := $(abspath $(BIN_DIR)/skaffold)
+KUBECTL        := $(abspath $(BIN_DIR)/kubectl)-$(KUBECTL_VERSION)
+SKAFFOLD       := $(abspath $(BIN_DIR)/skaffold)-$(SKAFFOLD_VERSION)
 KPT            := $(abspath $(BIN_DIR)/kpt)
 DELVE          := $(abspath $(BIN_DIR)/dlv)
 GOFUMPT        := $(abspath $(BIN_DIR)/gofumpt)
@@ -45,13 +48,13 @@ $(KIND): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(KIND) sigs.k8s.io/kind
 
 kubectl: $(KUBECTL)
-$(KUBECTL): dev/.kubectl-version
-	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/$(shell cat ./dev/.kubectl-version)/bin/$(GOOS)/$(GOARCH)/kubectl
+$(KUBECTL):
+	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOOS)/$(GOARCH)/kubectl
 	@chmod +x $(KUBECTL)
 
 skaffold: $(SKAFFOLD)
-$(SKAFFOLD): dev/.skaffold-version
-	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/$(shell cat ./dev/.skaffold-version)/skaffold-$(GOOS)-$(GOARCH)
+$(SKAFFOLD):
+	@curl -Lso $(SKAFFOLD) https://storage.googleapis.com/skaffold/releases/v$(SKAFFOLD_VERSION)/skaffold-$(GOOS)-$(GOARCH)
 	@chmod +x $(SKAFFOLD)
 
 kpt: $(KPT)
