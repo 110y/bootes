@@ -10,7 +10,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/google/uuid"
 
-	api "github.com/110y/bootes/internal/k8s/api/v1"
+	api "github.com/110y/bootes-api/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/observer/trace"
 	"github.com/110y/bootes/internal/xds/cache"

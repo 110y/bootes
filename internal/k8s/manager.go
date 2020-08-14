@@ -10,8 +10,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	ctrlscheme "sigs.k8s.io/controller-runtime/pkg/scheme"
 
-	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	apiv1 "github.com/110y/bootes-api/api/v1"
 )
 
 const (
@@ -35,13 +36,14 @@ var pprofHandlerMap = map[string]http.HandlerFunc{
 	pprofSymbolEndpoint:  pprof.Symbol,
 	pprofTraceEndpoint:   pprof.Trace,
 }
+var SchemeBuilder = &ctrlscheme.Builder{GroupVersion: apiv1.GroupVersion}
 
 func NewManager(c *ManagerConfig) (manager.Manager, error) {
 	s := runtime.NewScheme()
 	if err := scheme.AddToScheme(s); err != nil {
 		return nil, fmt.Errorf("failed to create new scheme: %w", err)
 	}
-	if err := apiv1.AddToScheme(s); err != nil {
+	if err := SchemeBuilder.AddToScheme(s); err != nil {
 		return nil, fmt.Errorf("failed to add scheme to apiv1: %w", err)
 	}
 
@@ -76,4 +78,19 @@ func NewManager(c *ManagerConfig) (manager.Manager, error) {
 	}
 
 	return manager, nil
+}
+
+func init() {
+	resources := []runtime.Object{
+		&apiv1.Cluster{},
+		&apiv1.ClusterList{},
+		&apiv1.Endpoint{},
+		&apiv1.EndpointList{},
+		&apiv1.Listener{},
+		&apiv1.ListenerList{},
+		&apiv1.Route{},
+		&apiv1.RouteList{},
+	}
+
+	SchemeBuilder.Register(resources...)
 }
