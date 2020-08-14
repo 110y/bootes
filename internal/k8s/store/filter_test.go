@@ -3,7 +3,7 @@ package store_test
 import (
 	"testing"
 
-	api "github.com/110y/bootes/internal/k8s/api/v1"
+	api "github.com/110y/bootes-api/api/v1"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/google/go-cmp/cmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

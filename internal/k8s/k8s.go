@@ -7,7 +7,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	apiv1 "github.com/110y/bootes-api/api/v1"
 	"github.com/110y/bootes/internal/k8s/internal/controller"
 	"github.com/110y/bootes/internal/k8s/store"
 	"github.com/110y/bootes/internal/xds/cache"

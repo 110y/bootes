@@ -8,7 +8,7 @@ import (
 	xdscache "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
 	resource "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 
-	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	apiv1 "github.com/110y/bootes-api/api/v1"
 	"github.com/110y/bootes/internal/observer/trace"
 )
 

@@ -1,7 +1,7 @@
 package store
 
 import (
-	api "github.com/110y/bootes/internal/k8s/api/v1"
+	api "github.com/110y/bootes-api/api/v1"
 )
 
 func FilterClustersByLabels(clusters []*api.Cluster, labels map[string]string) []*api.Cluster {

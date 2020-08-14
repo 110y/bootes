@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	apiv1 "github.com/110y/bootes/internal/k8s/api/v1"
+	"github.com/110y/bootes/internal/k8s"
 )
 
 var (
@@ -57,7 +57,7 @@ func TestK8SClient() (client.Client, func(), error) {
 		return nil, nil, fmt.Errorf("failed to create new scheme: %w", err)
 	}
 
-	if err := apiv1.AddToScheme(s); err != nil {
+	if err := k8s.SchemeBuilder.AddToScheme(s); err != nil {
 		return nil, nil, fmt.Errorf("faileld to add bootes scheme: %w", err)
 	}
 
