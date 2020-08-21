@@ -11,8 +11,8 @@ KUBEBUILDER_DIR     := $(DEV_DIR)/kubebuilder
 KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
-KUBECTL_VERSION  := 1.18.5
-SKAFFOLD_VERSION := 1.12.0
+KUBECTL_VERSION  := 1.18.6
+SKAFFOLD_VERSION := 1.13.2
 
 CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
 TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
@@ -24,7 +24,7 @@ DELVE          := $(abspath $(BIN_DIR)/dlv)
 GOFUMPT        := $(abspath $(BIN_DIR)/gofumpt)
 GOLANGCI_LINT  := $(abspath $(BIN_DIR)/golangci-lint)
 
-KIND_NODE_VERSION := 1.18.2
+KIND_NODE_VERSION := 1.18.6
 KIND_CLUSTER_NAME := bootes
 
 BUILD_TOOLS := cd $(TOOLS_DIR) && go build -o
