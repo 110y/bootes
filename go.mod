@@ -1,6 +1,6 @@
 module github.com/110y/bootes
 
-go 1.14
+go 1.15
 
 require (
 	github.com/110y/bootes-api v0.0.0-20200715085629-385882e22027

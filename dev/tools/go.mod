@@ -1,6 +1,6 @@
 module github.com/110y/bootes/dev/tools
 
-go 1.14
+go 1.15
 
 require (
 	github.com/GoogleContainerTools/kpt v0.27.0
