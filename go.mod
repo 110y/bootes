@@ -7,7 +7,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v0.1.1-0.20200514210843-966afdc5d38c
 	github.com/envoyproxy/go-control-plane v0.9.6
 	github.com/go-logr/logr v0.2.1
-	github.com/go-logr/zapr v0.1.1
+	github.com/go-logr/zapr v0.2.0
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-cmp v0.4.0
 	github.com/google/uuid v1.1.1
