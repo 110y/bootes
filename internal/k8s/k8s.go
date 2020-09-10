@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -20,6 +21,7 @@ type Controller struct {
 
 func NewController(mgr manager.Manager, s store.Store, c cache.Cache, l logr.Logger) (*Controller, error) {
 	ctrl.SetLogger(l)
+	klog.SetLogger(l.WithName("klog"))
 
 	if err := setupClusterReconciler(mgr, s, c, l.WithName("cluster_reconciler")); err != nil {
 		return nil, err
