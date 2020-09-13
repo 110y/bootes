@@ -9,13 +9,13 @@ require (
 	github.com/go-logr/logr v0.2.1
 	github.com/go-logr/zapr v0.2.0
 	github.com/golang/protobuf v1.4.2
-	github.com/google/go-cmp v0.4.0
-	github.com/google/uuid v1.1.1
+	github.com/google/go-cmp v0.5.2
+	github.com/google/uuid v1.1.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	go.opentelemetry.io/otel v0.5.0
 	go.opentelemetry.io/otel/exporters/trace/jaeger v0.5.0
-	go.uber.org/zap v1.14.0
-	google.golang.org/grpc v1.31.0
+	go.uber.org/zap v1.16.0
+	google.golang.org/grpc v1.32.0
 	google.golang.org/protobuf v1.24.0
 	k8s.io/api v0.19.1
 	k8s.io/apimachinery v0.19.1
