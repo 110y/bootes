@@ -29,4 +29,4 @@ metadata:
 spec:
   containers:
     - name: jaeger
-      image: jaegertracing/all-in-one:1.17.1
+      image: jaegertracing/all-in-one:1.20.0
