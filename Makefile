@@ -24,7 +24,7 @@ DELVE          := $(abspath $(BIN_DIR)/dlv)
 GOFUMPT        := $(abspath $(BIN_DIR)/gofumpt)
 GOLANGCI_LINT  := $(abspath $(BIN_DIR)/golangci-lint)
 
-KIND_NODE_VERSION := 1.18.6
+KIND_NODE_VERSION := 1.19.1
 KIND_CLUSTER_NAME := bootes
 
 BUILD_TOOLS := cd $(TOOLS_DIR) && go build -o
