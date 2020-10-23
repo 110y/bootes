@@ -4,28 +4,22 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/exporters/trace/stdout"
+	"go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 func Initialize(config *trace.Config) error {
-	options := stdout.Options{
-		PrettyPrint: false,
-	}
-	exporter, err := stdout.NewExporter(options)
+	exporter, err := stdout.NewExporter()
 	if err != nil {
 		return fmt.Errorf("failed to create stdout trace exporter: %w", err)
 	}
 
-	provider, err := trace.NewProvider(
+	provider := trace.NewTracerProvider(
 		trace.WithConfig(*config),
 		trace.WithSyncer(exporter),
 	)
-	if err != nil {
-		return fmt.Errorf("failed to create stdout trace provider: %w", err)
-	}
 
-	global.SetTraceProvider(provider)
+	global.SetTracerProvider(provider)
 
 	return nil
 }
