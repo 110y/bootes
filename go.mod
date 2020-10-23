@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/110y/bootes-api v0.0.0-20200715085629-385882e22027
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v0.1.1-0.20200514210843-966afdc5d38c
-	github.com/envoyproxy/go-control-plane v0.9.6
+	github.com/envoyproxy/go-control-plane v0.9.7
 	github.com/go-logr/logr v0.2.1
 	github.com/go-logr/zapr v0.2.0
 	github.com/golang/protobuf v1.4.2
