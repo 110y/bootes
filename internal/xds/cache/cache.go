@@ -69,11 +69,12 @@ func (c *cache) UpdateAllResources(ctx context.Context, node, version string, cl
 	var s xdscache.Snapshot
 	oldSnapshot, err := c.snapshotCache.GetSnapshot(node)
 	if err != nil {
-		s = xdscache.NewSnapshot(version, er, cr, rr, lr, nil)
+		s = xdscache.NewSnapshot(version, er, cr, rr, lr, nil, nil)
 	} else {
 		runtimes := getResourceFromSnapshot(&oldSnapshot, resource.RuntimeType)
+		secrets := getResourceFromSnapshot(&oldSnapshot, resource.SecretType)
 
-		xdscache.NewSnapshot(version, er, cr, rr, lr, runtimes)
+		xdscache.NewSnapshot(version, er, cr, rr, lr, runtimes, secrets)
 	}
 
 	if err := c.snapshotCache.SetSnapshot(node, s); err != nil {
@@ -139,15 +140,16 @@ func (c *cache) newClusterSnapshot(node, version string, clusters []*apiv1.Clust
 
 	s, err := c.snapshotCache.GetSnapshot(node)
 	if err != nil {
-		return xdscache.NewSnapshot(version, nil, resources, nil, nil, nil)
+		return xdscache.NewSnapshot(version, nil, resources, nil, nil, nil, nil)
 	}
 
 	endpoints := getResourceFromSnapshot(&s, resource.EndpointType)
 	routes := getResourceFromSnapshot(&s, resource.RouteType)
 	listeners := getResourceFromSnapshot(&s, resource.ListenerType)
 	runtimes := getResourceFromSnapshot(&s, resource.RuntimeType)
+	secrets := getResourceFromSnapshot(&s, resource.SecretType)
 
-	return xdscache.NewSnapshot(version, endpoints, resources, routes, listeners, runtimes)
+	return xdscache.NewSnapshot(version, endpoints, resources, routes, listeners, runtimes, secrets)
 }
 
 func (c *cache) newListenerSnapshot(node, version string, listeners []*apiv1.Listener) xdscache.Snapshot {
@@ -158,15 +160,16 @@ func (c *cache) newListenerSnapshot(node, version string, listeners []*apiv1.Lis
 
 	s, err := c.snapshotCache.GetSnapshot(node)
 	if err != nil {
-		return xdscache.NewSnapshot(version, nil, nil, nil, resources, nil)
+		return xdscache.NewSnapshot(version, nil, nil, nil, resources, nil, nil)
 	}
 
 	endpoints := getResourceFromSnapshot(&s, resource.EndpointType)
 	clusters := getResourceFromSnapshot(&s, resource.ClusterType)
 	routes := getResourceFromSnapshot(&s, resource.RouteType)
 	runtimes := getResourceFromSnapshot(&s, resource.RuntimeType)
+	secrets := getResourceFromSnapshot(&s, resource.SecretType)
 
-	return xdscache.NewSnapshot(version, endpoints, clusters, routes, resources, runtimes)
+	return xdscache.NewSnapshot(version, endpoints, clusters, routes, resources, runtimes, secrets)
 }
 
 func (c *cache) newRouteSnapshot(node, version string, routes []*apiv1.Route) xdscache.Snapshot {
@@ -177,15 +180,16 @@ func (c *cache) newRouteSnapshot(node, version string, routes []*apiv1.Route) xd
 
 	s, err := c.snapshotCache.GetSnapshot(node)
 	if err != nil {
-		return xdscache.NewSnapshot(version, nil, nil, resources, nil, nil)
+		return xdscache.NewSnapshot(version, nil, nil, resources, nil, nil, nil)
 	}
 
 	endpoints := getResourceFromSnapshot(&s, resource.EndpointType)
 	clusters := getResourceFromSnapshot(&s, resource.ClusterType)
 	listeners := getResourceFromSnapshot(&s, resource.ListenerType)
 	runtimes := getResourceFromSnapshot(&s, resource.RuntimeType)
+	secrets := getResourceFromSnapshot(&s, resource.SecretType)
 
-	return xdscache.NewSnapshot(version, endpoints, clusters, resources, listeners, runtimes)
+	return xdscache.NewSnapshot(version, endpoints, clusters, resources, listeners, runtimes, secrets)
 }
 
 func (c *cache) newEndpointSnapshot(node, version string, endpoints []*apiv1.Endpoint) xdscache.Snapshot {
@@ -196,15 +200,16 @@ func (c *cache) newEndpointSnapshot(node, version string, endpoints []*apiv1.End
 
 	s, err := c.snapshotCache.GetSnapshot(node)
 	if err != nil {
-		return xdscache.NewSnapshot(version, nil, nil, resources, nil, nil)
+		return xdscache.NewSnapshot(version, nil, nil, resources, nil, nil, nil)
 	}
 
 	clusters := getResourceFromSnapshot(&s, resource.ClusterType)
 	listeners := getResourceFromSnapshot(&s, resource.ListenerType)
 	routes := getResourceFromSnapshot(&s, resource.RouteType)
 	runtimes := getResourceFromSnapshot(&s, resource.RuntimeType)
+	secrets := getResourceFromSnapshot(&s, resource.SecretType)
 
-	return xdscache.NewSnapshot(version, resources, clusters, routes, listeners, runtimes)
+	return xdscache.NewSnapshot(version, resources, clusters, routes, listeners, runtimes, secrets)
 }
 
 func getResourceFromSnapshot(snapshot *xdscache.Snapshot, typeURL string) []types.Resource {
