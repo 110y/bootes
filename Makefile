@@ -35,7 +35,7 @@ $(KUBEBUILDER):
 	@curl -sL https://go.kubebuilder.io/dl/$(KUBEBUILDER_VERSION)/$(GOOS)/$(GOARCH) | tar -xz -C /tmp/
 	@mv /tmp/kubebuilder_$(KUBEBUILDER_VERSION)_$(GOOS)_$(GOARCH) $(KUBEBUILDER_DIR)
 
-controlller-gen: $(CONTROLLER_GEN)
+controller-gen: $(CONTROLLER_GEN)
 $(CONTROLLER_GEN): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
 
