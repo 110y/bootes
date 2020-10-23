@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/api/global"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/110y/bootes/internal/observer/trace/jaeger"
 	"github.com/110y/bootes/internal/observer/trace/stdout"
 )
+
+var _ otel.ErrorHandler = (*errorHandler)(nil)
 
 const tracerName = "bootes.io"
 
@@ -52,6 +55,8 @@ func Initialize(config *Config) (func(), error) {
 		}
 	}
 
+	global.SetErrorHandler(&errorHandler{})
+
 	return func() {
 		for _, flush := range flushers {
 			flush()
@@ -62,4 +67,12 @@ func Initialize(config *Config) (func(), error) {
 func NewSpan(ctx context.Context, name string) (context.Context, Span) {
 	ctx, span := global.Tracer(tracerName).Start(ctx, name)
 	return ctx, &openTelemetrySpan{span: span}
+}
+
+type errorHandler struct {
+	logger logr.Logger
+}
+
+func (h errorHandler) Handle(err error) {
+	h.logger.Error(err, "an error occurred in tracer")
 }

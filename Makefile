@@ -11,8 +11,8 @@ KUBEBUILDER_DIR     := $(DEV_DIR)/kubebuilder
 KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
-KUBECTL_VERSION  := 1.18.6
-SKAFFOLD_VERSION := 1.14.0
+KUBECTL_VERSION  := 1.19.3
+SKAFFOLD_VERSION := 1.15.0
 
 CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
 TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
@@ -24,7 +24,7 @@ DELVE          := $(abspath $(BIN_DIR)/dlv)
 GOFUMPT        := $(abspath $(BIN_DIR)/gofumpt)
 GOLANGCI_LINT  := $(abspath $(BIN_DIR)/golangci-lint)
 
-KIND_NODE_VERSION := 1.18.6
+KIND_NODE_VERSION := 1.19.1
 KIND_CLUSTER_NAME := bootes
 
 BUILD_TOOLS := cd $(TOOLS_DIR) && go build -o
@@ -35,7 +35,7 @@ $(KUBEBUILDER):
 	@curl -sL https://go.kubebuilder.io/dl/$(KUBEBUILDER_VERSION)/$(GOOS)/$(GOARCH) | tar -xz -C /tmp/
 	@mv /tmp/kubebuilder_$(KUBEBUILDER_VERSION)_$(GOOS)_$(GOARCH) $(KUBEBUILDER_DIR)
 
-controlller-gen: $(CONTROLLER_GEN)
+controller-gen: $(CONTROLLER_GEN)
 $(CONTROLLER_GEN): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(CONTROLLER_GEN) sigs.k8s.io/controller-tools/cmd/controller-gen
 

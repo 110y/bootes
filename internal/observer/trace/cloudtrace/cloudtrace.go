@@ -20,12 +20,8 @@ func Initialize(c *trace.Config, projectID string, logger logr.Logger) error {
 		return fmt.Errorf("failed to create cloud trace exporter: %w", err)
 	}
 
-	tp, err := trace.NewProvider(trace.WithSyncer(exp))
-	if err != nil {
-		return fmt.Errorf("failed to create cloud trace provider: %w", err)
-	}
-
-	global.SetTraceProvider(tp)
+	tp := trace.NewTracerProvider(trace.WithSyncer(exp))
+	global.SetTracerProvider(tp)
 
 	return nil
 }
