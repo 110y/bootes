@@ -12,7 +12,7 @@ KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
 KUBECTL_VERSION  := 1.19.3
-SKAFFOLD_VERSION := 1.15.0
+SKAFFOLD_VERSION := 1.16.0
 
 CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
 TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
