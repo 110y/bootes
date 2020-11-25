@@ -1,7 +1,7 @@
 package trace
 
 import (
-	"go.opentelemetry.io/otel/api/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var _ Span = (*openTelemetrySpan)(nil)

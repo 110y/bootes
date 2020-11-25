@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
-	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/trace/jaeger"
 	"go.opentelemetry.io/otel/label"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -27,7 +27,7 @@ func Initialize(c *trace.Config, endpoint string, logger logr.Logger) (func(), e
 		return nil, fmt.Errorf("failed to create jaeger trace exporter: %w", err)
 	}
 
-	global.SetTracerProvider(tp)
+	otel.SetTracerProvider(tp)
 
 	return func() {
 		logger.Info("flushing jaeger traces")

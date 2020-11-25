@@ -3,7 +3,7 @@ package stdout
 import (
 	"fmt"
 
-	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/stdout"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
@@ -19,7 +19,7 @@ func Initialize(config *trace.Config) error {
 		trace.WithSyncer(exporter),
 	)
 
-	global.SetTracerProvider(provider)
+	otel.SetTracerProvider(provider)
 
 	return nil
 }

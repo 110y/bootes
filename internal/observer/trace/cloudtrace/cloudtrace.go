@@ -5,7 +5,7 @@ import (
 
 	exporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace"
 	"github.com/go-logr/logr"
-	"go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
@@ -21,7 +21,7 @@ func Initialize(c *trace.Config, projectID string, logger logr.Logger) error {
 	}
 
 	tp := trace.NewTracerProvider(trace.WithSyncer(exp))
-	global.SetTracerProvider(tp)
+	otel.SetTracerProvider(tp)
 
 	return nil
 }

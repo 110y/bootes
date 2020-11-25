@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/api/global"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 
 	"github.com/110y/bootes/internal/observer/trace/cloudtrace"
@@ -55,7 +54,7 @@ func Initialize(config *Config) (func(), error) {
 		}
 	}
 
-	global.SetErrorHandler(&errorHandler{})
+	otel.SetErrorHandler(&errorHandler{})
 
 	return func() {
 		for _, flush := range flushers {
@@ -65,7 +64,7 @@ func Initialize(config *Config) (func(), error) {
 }
 
 func NewSpan(ctx context.Context, name string) (context.Context, Span) {
-	ctx, span := global.Tracer(tracerName).Start(ctx, name)
+	ctx, span := otel.Tracer(tracerName).Start(ctx, name)
 	return ctx, &openTelemetrySpan{span: span}
 }
 
