@@ -12,6 +12,7 @@ KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
 KUBECTL_VERSION  := 1.20.2
+KPT_VERSION      := 0.37.1
 SKAFFOLD_VERSION := 1.19.0
 KIND_VERSION     := 0.10.0
 
@@ -20,7 +21,7 @@ TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
 KIND           := $(abspath $(BIN_DIR)/kind)-$(KIND_VERSION)
 KUBECTL        := $(abspath $(BIN_DIR)/kubectl)-$(KUBECTL_VERSION)
 SKAFFOLD       := $(abspath $(BIN_DIR)/skaffold)-$(SKAFFOLD_VERSION)
-KPT            := $(abspath $(BIN_DIR)/kpt)
+KPT            := $(abspath $(BIN_DIR)/kpt)-$(KPT_VERSION)
 DELVE          := $(abspath $(BIN_DIR)/dlv)
 GOFUMPT        := $(abspath $(BIN_DIR)/gofumpt)
 GOLANGCI_LINT  := $(abspath $(BIN_DIR)/golangci-lint)
@@ -62,8 +63,9 @@ $(SKAFFOLD):
 	@chmod +x $(SKAFFOLD)
 
 kpt: $(KPT)
-$(KPT): $(TOOLS_SUM)
-	@$(BUILD_TOOLS) $(KPT) github.com/GoogleContainerTools/kpt
+$(KPT):
+	@curl -sSL "https://github.com/GoogleContainerTools/kpt/releases/download/v${KPT_VERSION}/kpt_${GOOS}_${GOARCH}-${KPT_VERSION}.tar.gz" | tar -C /tmp -xzv kpt
+	@mv /tmp/kpt $(KPT)
 
 delve: $(DELVE)
 $(DELVE): $(TOOLS_SUM)
