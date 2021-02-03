@@ -1,5 +1,5 @@
 ---
-apiVersion: skaffold/v2beta5
+apiVersion: skaffold/v2beta11
 kind: Config
 build:
   artifacts:
@@ -11,3 +11,5 @@ deploy:
   kubectl:
     manifests:
       - ./dev/skaffold/pod.yaml
+  logs:
+    prefix: container
