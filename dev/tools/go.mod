@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/go-delve/delve v1.6.0
-	github.com/golangci/golangci-lint v1.32.0
-	mvdan.cc/gofumpt v0.0.0-20200927160801-5bfeb2e70dd6
-	sigs.k8s.io/controller-tools v0.4.0
+	github.com/golangci/golangci-lint v1.36.0
+	mvdan.cc/gofumpt v0.1.0
+	sigs.k8s.io/controller-tools v0.4.1
 )
