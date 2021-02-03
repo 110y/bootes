@@ -11,20 +11,22 @@ KUBEBUILDER_DIR     := $(DEV_DIR)/kubebuilder
 KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
-KUBECTL_VERSION  := 1.19.3
-SKAFFOLD_VERSION := 1.16.0
+KUBECTL_VERSION  := 1.20.2
+KPT_VERSION      := 0.37.1
+SKAFFOLD_VERSION := 1.19.0
+KIND_VERSION     := 0.10.0
 
 CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
 TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
-KIND           := $(abspath $(BIN_DIR)/kind)
+KIND           := $(abspath $(BIN_DIR)/kind)-$(KIND_VERSION)
 KUBECTL        := $(abspath $(BIN_DIR)/kubectl)-$(KUBECTL_VERSION)
 SKAFFOLD       := $(abspath $(BIN_DIR)/skaffold)-$(SKAFFOLD_VERSION)
-KPT            := $(abspath $(BIN_DIR)/kpt)
+KPT            := $(abspath $(BIN_DIR)/kpt)-$(KPT_VERSION)
 DELVE          := $(abspath $(BIN_DIR)/dlv)
 GOFUMPT        := $(abspath $(BIN_DIR)/gofumpt)
 GOLANGCI_LINT  := $(abspath $(BIN_DIR)/golangci-lint)
 
-KIND_NODE_VERSION := 1.19.1
+KIND_NODE_VERSION := 1.20.2
 KIND_CLUSTER_NAME := bootes
 
 BUILD_TOOLS := cd $(TOOLS_DIR) && go build -o
@@ -44,13 +46,16 @@ $(TYPE_SCAFFOLD): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(TYPE_SCAFFOLD) sigs.k8s.io/controller-tools/cmd/type-scaffold
 
 kind: $(KIND)
-$(KIND): $(TOOLS_SUM)
-	@$(BUILD_TOOLS) $(KIND) sigs.k8s.io/kind
+$(KIND):
+	@curl -Lso $(KIND) https://github.com/kubernetes-sigs/kind/releases/download/v${KIND_VERSION}/kind-${GOOS}-${GOARCH}
+	@chmod +x $(KIND)
+	@cp $(KIND) ./dev/bin/kind # to use this in skaffold which implicitly picks up from $PATH
 
 kubectl: $(KUBECTL)
 $(KUBECTL):
 	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOOS)/$(GOARCH)/kubectl
 	@chmod +x $(KUBECTL)
+	@cp $(KUBECTL) ./dev/bin/kubectl # to use this in skaffold which implicitly picks up from $PATH
 
 skaffold: $(SKAFFOLD)
 $(SKAFFOLD):
@@ -58,8 +63,9 @@ $(SKAFFOLD):
 	@chmod +x $(SKAFFOLD)
 
 kpt: $(KPT)
-$(KPT): $(TOOLS_SUM)
-	@$(BUILD_TOOLS) $(KPT) github.com/GoogleContainerTools/kpt
+$(KPT):
+	@curl -sSL "https://github.com/GoogleContainerTools/kpt/releases/download/v${KPT_VERSION}/kpt_${GOOS}_${GOARCH}-${KPT_VERSION}.tar.gz" | tar -C /tmp -xzv kpt
+	@mv /tmp/kpt $(KPT)
 
 delve: $(DELVE)
 $(DELVE): $(TOOLS_SUM)
@@ -97,13 +103,13 @@ kind-image: $(KIND)
 run: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind and kubectl from PATH directly, override PATH to use project local executables.
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
-	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) dev --filename=./dev/skaffold/skaffold.yaml
+	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) dev --tail --filename=./dev/skaffold/skaffold.yaml
 
 .PHONY: run-debug
 run-debug: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind and kubectl from PATH directly, override PATH to use project local executables.
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
-	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml --port-forward=true
+	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) debug --tail --filename=./dev/skaffold/skaffold.yaml --port-forward=true
 
 .PHONY: debug
 debug: $(DELVE)
