@@ -6,6 +6,10 @@ build:
     - image: bootes
       docker:
         dockerfile: ./Dockerfile
+  tagPolicy:
+    gitCommit: {}
+  local:
+    concurrency: 1
 
 deploy:
   kubectl:
