@@ -10,9 +10,9 @@ spec:
     connect_timeout: 1s
     type: EDS
     lb_policy: ROUND_ROBIN
-    http2_protocol_options: {}
     eds_cluster_config:
       eds_config:
+        resource_api_version: V3
         ads: {}
 
 ---
@@ -30,7 +30,7 @@ spec:
     connect_timeout: 1s
     type: EDS
     lb_policy: ROUND_ROBIN
-    http2_protocol_options: {}
     eds_cluster_config:
       eds_config:
+        resource_api_version: V3
         ads: {}
