@@ -12,11 +12,12 @@ KUBEBUILDER_ASSETS  := $(KUBEBUILDER_DIR)/bin
 KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
 KUBECTL_VERSION  := 1.20.2
-SKAFFOLD_VERSION := 1.16.0
+SKAFFOLD_VERSION := 1.19.0
+KIND_VERSION     := 0.10.0
 
 CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
 TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
-KIND           := $(abspath $(BIN_DIR)/kind)
+KIND           := $(abspath $(BIN_DIR)/kind)-$(KIND_VERSION)
 KUBECTL        := $(abspath $(BIN_DIR)/kubectl)-$(KUBECTL_VERSION)
 SKAFFOLD       := $(abspath $(BIN_DIR)/skaffold)-$(SKAFFOLD_VERSION)
 KPT            := $(abspath $(BIN_DIR)/kpt)
@@ -44,13 +45,16 @@ $(TYPE_SCAFFOLD): $(TOOLS_SUM)
 	@$(BUILD_TOOLS) $(TYPE_SCAFFOLD) sigs.k8s.io/controller-tools/cmd/type-scaffold
 
 kind: $(KIND)
-$(KIND): $(TOOLS_SUM)
-	@$(BUILD_TOOLS) $(KIND) sigs.k8s.io/kind
+$(KIND):
+	@curl -Lso $(KIND) https://github.com/kubernetes-sigs/kind/releases/download/v${KIND_VERSION}/kind-${GOOS}-${GOARCH}
+	@chmod +x $(KIND)
+	@cp $(KIND) ./dev/bin/kind # to use this in skaffold which implicitly picks up from $PATH
 
 kubectl: $(KUBECTL)
 $(KUBECTL):
 	@curl -Lso $(KUBECTL) https://storage.googleapis.com/kubernetes-release/release/v$(KUBECTL_VERSION)/bin/$(GOOS)/$(GOARCH)/kubectl
 	@chmod +x $(KUBECTL)
+	@cp $(KUBECTL) ./dev/bin/kubectl # to use this in skaffold which implicitly picks up from $PATH
 
 skaffold: $(SKAFFOLD)
 $(SKAFFOLD):
@@ -97,13 +101,13 @@ kind-image: $(KIND)
 run: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind and kubectl from PATH directly, override PATH to use project local executables.
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
-	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) dev --filename=./dev/skaffold/skaffold.yaml
+	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) dev --tail --filename=./dev/skaffold/skaffold.yaml
 
 .PHONY: run-debug
 run-debug: $(SKAFFOLD)
 	# NOTE: since skaffold is using kind and kubectl from PATH directly, override PATH to use project local executables.
 	@$(KUBECTL) config use-context kind-$(KIND_CLUSTER_NAME)
-	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) debug --filename=./dev/skaffold/skaffold.yaml --port-forward=true
+	@PATH=$${PWD}/dev/bin:$${PATH} $(SKAFFOLD) debug --tail --filename=./dev/skaffold/skaffold.yaml --port-forward=true
 
 .PHONY: debug
 debug: $(DELVE)
