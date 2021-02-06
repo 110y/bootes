@@ -31,8 +31,8 @@ type EndpointReconciler struct {
 	logger logr.Logger
 }
 
-func (r *EndpointReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx, span := trace.NewSpan(context.Background(), "EndpointReconciler.Reconcile")
+func (r *EndpointReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	ctx, span := trace.NewSpan(ctx, "EndpointReconciler.Reconcile")
 	defer span.End()
 
 	version := uuid.New().String()
