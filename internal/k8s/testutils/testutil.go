@@ -32,6 +32,23 @@ var (
 		return false
 	}, protocmp.Transform())
 
+	// TODO: these comparers should be more restrict.
+	CmpOptPodListComparer = cmp.Comparer(func(x, y corev1.PodList) bool {
+		if len(x.Items) != len(y.Items) {
+			return false
+		}
+
+		for i, xp := range x.Items {
+			yp := y.Items[i]
+
+			if !cmp.Equal(xp, yp, CmpOptPodComparer) {
+				return false
+			}
+		}
+
+		return true
+	})
+
 	CmpOptPodComparer = cmp.Comparer(func(x, y corev1.Pod) bool {
 		if len(x.Spec.Containers) != len(y.Spec.Containers) {
 			return false
@@ -40,13 +57,25 @@ var (
 		for i, xc := range x.Spec.Containers {
 			yc := y.Spec.Containers[i]
 
-			if !cmp.Equal(xc, yc) {
+			if !cmp.Equal(xc, yc, CmpOptContainerComparer) {
 				return false
 			}
 		}
 
 		return x.Name == y.Name &&
 			x.Namespace == y.Namespace
+	})
+
+	CmpOptContainerComparer = cmp.Comparer(func(x, y corev1.Container) bool {
+		if x.Name != y.Name {
+			return false
+		}
+
+		if x.Image != y.Image {
+			return false
+		}
+
+		return true
 	})
 
 	s = k8sRuntime.NewScheme()
