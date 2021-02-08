@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -85,7 +86,7 @@ func setupEndpointReconciler(mgr manager.Manager, s store.Store, c cache.Cache, 
 	return nil
 }
 
-func (c *Controller) Start(stopCh chan struct{}) error {
+func (c *Controller) Start(ctx context.Context) error {
 	c.logger.Info("starting k8s controller")
-	return c.manager.Start(stopCh)
+	return c.manager.Start(ctx)
 }

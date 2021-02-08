@@ -67,6 +67,8 @@ func run(ctx context.Context) int {
 
 	s := store.New(mgr.GetClient(), mgr.GetAPIReader())
 
+	ctx, cancel := context.WithCancel(ctx)
+
 	xs, err := xds.NewServer(ctx, sc, c, s, xl, &xds.Config{
 		Port:                 env.XDSGRPCPort,
 		EnableGRPCChannelz:   env.XDSGRPCEnableChannelz,
@@ -74,12 +76,14 @@ func run(ctx context.Context) int {
 	})
 	if err != nil {
 		sl.Error(err, "failed to create xds server")
+		cancel()
 		return 1
 	}
 
 	ctrl, err := k8s.NewController(mgr, s, c, l.WithName("k8s"))
 	if err != nil {
 		sl.Error(err, "failed to create k8s controller")
+		cancel()
 		return 1
 	}
 
@@ -90,9 +94,8 @@ func run(ctx context.Context) int {
 	}()
 
 	k8sErrChan := make(chan error, 1)
-	k8sStopChan := make(chan struct{}, 1)
 	go func() {
-		k8sErrChan <- ctrl.Start(k8sStopChan)
+		k8sErrChan <- ctrl.Start(ctx)
 	}()
 
 	terminationChan := make(chan os.Signal, 1)
@@ -102,8 +105,8 @@ func run(ctx context.Context) int {
 	case <-terminationChan:
 		sl.Info("stopping servers")
 
+		cancel()
 		xdsStopChan <- struct{}{}
-		k8sStopChan <- struct{}{}
 
 		wg := sync.WaitGroup{}
 
@@ -142,7 +145,8 @@ func run(ctx context.Context) int {
 
 	case err := <-xdsErrChan:
 		sl.Error(err, "failed to run xds grpc server")
-		k8sStopChan <- struct{}{}
+
+		cancel()
 
 		nerr := <-k8sErrChan
 		if nerr != nil {
@@ -150,9 +154,12 @@ func run(ctx context.Context) int {
 		}
 
 		return 1
+
 	case err := <-k8sErrChan:
 		sl.Error(err, "failed to run k8s controller")
 		xdsStopChan <- struct{}{}
+
+		cancel()
 
 		nerr := <-xdsErrChan
 		if nerr != nil {

@@ -31,8 +31,8 @@ type ClusterReconciler struct {
 	logger logr.Logger
 }
 
-func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx, span := trace.NewSpan(context.Background(), "ClusterReconciler.Reconcile")
+func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	ctx, span := trace.NewSpan(ctx, "ClusterReconciler.Reconcile")
 	defer span.End()
 
 	version := uuid.New().String()
