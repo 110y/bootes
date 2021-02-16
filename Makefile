@@ -91,8 +91,8 @@ deepcopy: $(CONTROLLER_GEN)
 kind-cluster: $(KIND) $(KUBECTL)
 	@$(KIND) delete cluster --name $(KIND_CLUSTER_NAME)
 	@$(KIND) create cluster --name $(KIND_CLUSTER_NAME) --image kindest/node:v${KIND_NODE_VERSION}
-	make kind-image
-	make kind-apply-manifests
+	@make kind-image
+	@make kind-apply-manifests
 
 .PHONY: kind-image
 kind-image: $(KIND)
@@ -129,9 +129,7 @@ test:
 
 .PHONY: kind-apply-manifests
 kind-apply-manifests: $(KUBECTL)
-	@$(KUBECTL) apply -f ./kubernetes/kpt/namespace.yaml
-	@$(KUBECTL) apply -f ./kubernetes/kpt/crd/
-	@$(KUBECTL) apply -f ./kubernetes/kpt/role/
-	@$(KUBECTL) apply -f ./dev/kind/namespace.yaml
-	sleep 15 # wait for namespace booting
-	@$(KUBECTL) apply -f ./dev/kind/manifest/
+	@$(KUBECTL) apply --filename ./kubernetes/kpt/namespace.yaml
+	@$(KUBECTL) apply --kustomize ./kubernetes/kpt/crd/
+	@$(KUBECTL) apply --kustomize ./kubernetes/kpt/role/
+	@$(KUBECTL) apply --kustomize ./dev/kind/manifest
