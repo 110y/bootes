@@ -1,0 +1,5 @@
+resources:
+- ./bootes.io_endpoints.yaml
+- ./bootes.io_clusters.yaml
+- ./bootes.io_routes.yaml
+- ./bootes.io_listeners.yaml
