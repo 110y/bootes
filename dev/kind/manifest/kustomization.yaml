@@ -1,0 +1,7 @@
+---
+resources:
+  - ./namespace.yaml
+  - ./service.yaml
+  - ./envoy-pod.yaml
+  - ./jaeger.yaml
+  - ./prometheus.yaml
