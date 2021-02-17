@@ -37,6 +37,7 @@ spec:
             description: ListenerSpec defines the desired state of Listener
             properties:
               config:
+                x-kubernetes-preserve-unknown-fields: true
                 type: object
               workloadSelector:
                 properties:

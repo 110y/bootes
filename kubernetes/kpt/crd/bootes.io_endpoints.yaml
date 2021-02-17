@@ -37,6 +37,7 @@ spec:
             description: EndpointSpec defines the desired state of Endpoint
             properties:
               config:
+                x-kubernetes-preserve-unknown-fields: true
                 type: object
               workloadSelector:
                 properties:

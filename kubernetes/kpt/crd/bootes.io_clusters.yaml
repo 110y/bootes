@@ -37,6 +37,7 @@ spec:
             description: ClusterSpec defines the desired state of Cluster
             properties:
               config:
+                x-kubernetes-preserve-unknown-fields: true
                 type: object
               workloadSelector:
                 properties:
