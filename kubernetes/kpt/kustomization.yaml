@@ -1,5 +1,8 @@
 resources:
 - ./namespace.yaml
-- ./crd
 - ./role
+- ./crd/bootes.io_clusters.yaml
+- ./crd/bootes.io_endpoints.yaml
+- ./crd/bootes.io_listeners.yaml
+- ./crd/bootes.io_routes.yaml
 - ./deployment
