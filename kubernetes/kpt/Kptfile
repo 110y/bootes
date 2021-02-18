@@ -10,7 +10,8 @@ openAPI:
       x-k8s-cli:
         setter:
           name: version
-          value: v0.0.1
+          value: 1.0.0
+          description: Version
     io.k8s.cli.substitutions.image:
       x-k8s-cli:
         substitution:
@@ -24,63 +25,76 @@ openAPI:
         setter:
           name: replicas
           value: "2"
+          description: Number of Pod replicas
     io.k8s.cli.setters.cpu-limit:
       x-k8s-cli:
         setter:
           name: cpu-limit
           value: "2"
+          description: CPU limit for each Pod
     io.k8s.cli.setters.memory-limit:
       x-k8s-cli:
         setter:
           name: memory-limit
           value: 4Gi
+          description: Memory limit for each Pod
     io.k8s.cli.setters.cpu-request:
       x-k8s-cli:
         setter:
           name: cpu-request
           value: "1"
+          description: CPU request for each Pod
     io.k8s.cli.setters.memory-request:
       x-k8s-cli:
         setter:
           name: memory-request
           value: 2Gi
+          description: Memory request for each Pod
     io.k8s.cli.setters.enable-jaeger-trace:
       x-k8s-cli:
         setter:
           name: enable-jaeger-trace
           value: 'false'
+          description: Use Jeager or not
     io.k8s.cli.setters.enable-stdout-trace:
       x-k8s-cli:
         setter:
           name: enable-stdout-trace
           value: 'false'
+          description: Use STDOUT trace or not
     io.k8s.cli.setters.jaeger-trace-endpoint:
       x-k8s-cli:
         setter:
           name: jaeger-trace-endpoint
           value: ''
+          description: Jaeger endpoint
     io.k8s.cli.setters.enable-xds-grpc-channelz:
       x-k8s-cli:
         setter:
           name: enable-xds-grpc-channelz
           value: 'false'
+          description: "Enable gRPC channelz or not"
     io.k8s.cli.setters.enable-xds-grpc-reflection:
       x-k8s-cli:
         setter:
           name: enable-xds-grpc-reflection
           value: 'false'
+          description: "Enable gRPC reflection or not"
     io.k8s.cli.setters.enable-gcp-cloud-trace:
       x-k8s-cli:
         setter:
           name: enable-gcp-cloud-trace
           value: 'false'
+          description: "Use Cloud Trace or not"
     io.k8s.cli.setters.gcp-cloud-trace-project-id:
       x-k8s-cli:
         setter:
           name: gcp-cloud-trace-project-id
           value: ''
+          description: "GCP Project ID for Cloud Trace"
     io.k8s.cli.setters.namespace:
       x-k8s-cli:
         setter:
           name: namespace
           value: bootes
+          description: Namespace

@@ -35,8 +35,8 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-github.com/110y/bootes-api v0.0.0-20210204020725-8ba7924f8cd2 h1:eu3roDJcNMLWn9Ekqq3hv3i09QdjPH4qSOHXBVqFNq4=
-github.com/110y/bootes-api v0.0.0-20210204020725-8ba7924f8cd2/go.mod h1:PINqMaQC1bMTD6X/3XsQpFSw/Fzqj14fw0kRerVCzVo=
+github.com/110y/bootes-api v1.0.0 h1:nfTtHl/NLJmxZYZUa0FaIw5ZglMfsG/UM/OQUTM7k6k=
+github.com/110y/bootes-api v1.0.0/go.mod h1:PINqMaQC1bMTD6X/3XsQpFSw/Fzqj14fw0kRerVCzVo=
 github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78/go.mod h1:LmzpDX56iTiv29bbRTIsUNlaFfuhWRQBWjQdVyAevI8=
 github.com/Azure/go-autorest v14.2.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest/autorest v0.11.1/go.mod h1:JFgpikqFJ/MleTTxwepExTKnFUKKszPS8UavbQYUMuw=

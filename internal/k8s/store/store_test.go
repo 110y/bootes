@@ -33,7 +33,7 @@ func TestMain(m *testing.M) {
 	os.Exit(func() int {
 		cli, done, err := testutils.TestK8SClient()
 		if err != nil {
-			fmt.Fprint(os.Stdout, fmt.Sprintf("failed to create k8s client: %s", err))
+			fmt.Fprint(os.Stdout, fmt.Sprintf("failed to create k8s client: %s\n", err))
 			return 1
 		}
 		defer done()

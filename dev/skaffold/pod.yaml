@@ -16,7 +16,7 @@ spec:
         - name: HEALTH_PROBE_SERVER_PORT
           value: '8080'
         - name: XDS_GRPC_PORT
-          value: '8081'
+          value: '5000'
         - name: XDS_GRPC_ENABLE_CHANNELZ
           value: 'true'
         - name: XDS_GRPC_ENABLE_REFLECTION

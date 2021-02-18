@@ -11,8 +11,8 @@ spec:
   ports:
     - name: grpc
       protocol: TCP
-      port: 8081
-      targetPort: 8081
+      port: 5000
+      targetPort: 5000
     - name: http-metrics
       protocol: TCP
       port: 4000

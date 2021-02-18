@@ -38,4 +38,4 @@ static_resources:
                   address:
                     socket_address:
                       address: bootes.bootes.svc.cluster.local
-                      port_value: 8081
+                      port_value: 5000

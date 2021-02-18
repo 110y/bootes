@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: bootes
-        image: 110y/bootes:v0.0.1 # {"$ref":"#/definitions/io.k8s.cli.substitutions.image"}
+        image: 110y/bootes:1.0.0 # {"$ref":"#/definitions/io.k8s.cli.substitutions.image"}
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:

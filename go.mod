@@ -3,7 +3,7 @@ module github.com/110y/bootes
 go 1.15
 
 require (
-	github.com/110y/bootes-api v0.0.0-20210204020725-8ba7924f8cd2
+	github.com/110y/bootes-api v1.0.0
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v0.16.0
 	github.com/envoyproxy/go-control-plane v0.9.8
 	github.com/go-logr/logr v0.4.0

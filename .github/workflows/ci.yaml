@@ -15,11 +15,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache
-        uses: actions/cache@v1
+      - name: Cache go modules
+        uses: actions/cache@v2
         with:
           path: /go/pkg/mod
           key: go-mod-${{ hashFiles('go.sum') }}
+
+      - name: Cache dev tools
+        uses: actions/cache@v2
+        with:
+          path: dev/bin
+          key: dev-tools
 
       - name: Fmt
         run: make fmt
@@ -34,14 +40,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache
-        uses: actions/cache@v1
+      - name: Cache dev tools
+        uses: actions/cache@v2
+        with:
+          path: dev/bin
+          key: dev-tools
+
+      - name: Cache go modules
+        uses: actions/cache@v2
         with:
           path: /go/pkg/mod
           key: go-mod-${{ hashFiles('go.sum') }}
-
-      - name: Dependencies
-        run: make kubebuilder
 
       - name: Test
         run: make test
@@ -54,8 +63,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache
-        uses: actions/cache@v1
+      - name: Cache go modules
+        uses: actions/cache@v2
         with:
           path: /go/pkg/mod
           key: go-mod-${{ hashFiles('go.sum') }}
