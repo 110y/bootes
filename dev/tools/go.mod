@@ -1,6 +1,6 @@
 module github.com/110y/bootes/dev/tools
 
-go 1.15
+go 1.16
 
 require (
 	github.com/go-delve/delve v1.6.0
