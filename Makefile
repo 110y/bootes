@@ -6,7 +6,7 @@ BIN_DIR   := $(DEV_DIR)/bin
 TOOLS_DIR := $(DEV_DIR)/tools
 TOOLS_SUM := $(TOOLS_DIR)/go.sum
 
-KUBERNETES_VERSION     := 1.20.2
+KUBERNETES_VERSION     := 1.21.1
 KUBE_APISERVER_VERSION := 1.19.8
 ETCD_VERSION           := 3.4.9
 
@@ -17,11 +17,11 @@ KUBEBUILDER         := $(KUBEBUILDER_ASSETS)/kubebuilder
 
 KPT_VERSION      := 0.37.1
 SKAFFOLD_VERSION := 1.19.0
-KIND_VERSION     := 0.10.0
+KIND_VERSION     := 0.11.1
 
 CONTROLLER_GEN := $(abspath $(BIN_DIR)/controller-gen)
 TYPE_SCAFFOLD  := $(abspath $(BIN_DIR)/type-scaffold)
-KUBE_APISERVER := $(abspath $(BIN_DIR)/kube-apiserver)-$(KUBERNETES_VERSION)
+KUBE_APISERVER := $(abspath $(BIN_DIR)/kube-apiserver)-$(KUBE_APISERVER_VERSION)
 ETCD           := $(abspath $(BIN_DIR)/etcd)-$(ETCD_VERSION)
 KIND           := $(abspath $(BIN_DIR)/kind)-$(KIND_VERSION)
 KUBECTL        := $(abspath $(BIN_DIR)/kubectl)-$(KUBERNETES_VERSION)
