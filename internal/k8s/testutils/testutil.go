@@ -33,9 +33,11 @@ import (
 var mu sync.Once
 
 var (
-	CmpOptProtoTransformer = cmp.FilterValues(func(x, _ interface{}) bool {
+	CmpOptProtoTransformer = cmp.FilterValues(func(x, y interface{}) bool {
 		if _, ok := x.(proto.Message); ok {
-			return true
+			if _, ok := y.(proto.Message); ok {
+				return true
+			}
 		}
 		return false
 	}, protocmp.Transform())

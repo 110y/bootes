@@ -69,7 +69,7 @@ spec:
         - '--service-node'
         - '$(POD_NAME).$(NAMESPACE)'
         - '--service-cluster'
-        - '$(DEPLOYMENT_NAME)'
+        - '$(DEPLOYMENT_NAME).$(NAMESPACE)'
       env:
         - name: NAMESPACE
           valueFrom:
