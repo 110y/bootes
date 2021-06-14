@@ -140,8 +140,8 @@ func TestK8SClient() (client.Client, func(), error) {
 			"--advertise-address=127.0.0.1",
 			"--etcd-servers={{ if .EtcdURL }}{{ .EtcdURL.String }}{{ end }}",
 			"--cert-dir={{ .CertDir }}",
-			"--insecure-port={{ if .URL }}{{ .URL.Port }}{{ end }}",
-			"--insecure-bind-address={{ if .URL }}{{ .URL.Hostname }}{{ end }}",
+			"--insecure-port={{ if .URL }}{{ .URL.Port }}{{else}}0{{ end }}",
+			"{{ if .URL }}--insecure-bind-address={{ .URL.Hostname }}{{ end }}",
 			"--secure-port={{ if .SecurePort }}{{ .SecurePort }}{{ end }}",
 			// we're keeping this disabled because if enabled, default SA is missing which would force all tests to create one
 			// in normal apiserver operation this SA is created by controller, but that is not run in integration environment
