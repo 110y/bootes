@@ -46,7 +46,7 @@ func NewSnapshotCache(l logr.Logger) xdscache.SnapshotCache {
 	return xdscache.NewSnapshotCache(true, xdscache.IDHash{}, newSnapshotCacheLogger(l))
 }
 
-func (s *Server) Start(stopCh chan struct{}) error {
+func (s *Server) Start(ctx context.Context) error {
 	errCh := make(chan error, 1)
 	go func() {
 		s.logger.Info("starting xds server")
@@ -54,7 +54,7 @@ func (s *Server) Start(stopCh chan struct{}) error {
 	}()
 
 	select {
-	case <-stopCh:
+	case <-ctx.Done():
 		s.logger.Info("stopping xds server")
 		s.grpcServer.Stop()
 		return nil
