@@ -16,11 +16,7 @@ import (
 	"github.com/110y/bootes/internal/xds/cache"
 )
 
-func Run() {
-	os.Exit(run(context.Background()))
-}
-
-func run(ctx context.Context) int {
+func Run(ctx context.Context) int {
 	ctx, stop := signal.NotifyContext(ctx, unix.SIGTERM, unix.SIGINT)
 	defer stop()
 
