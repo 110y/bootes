@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/signal"
 
 	"github.com/110y/servergroup"
-	"golang.org/x/sys/unix"
 
 	"github.com/110y/bootes/internal/k8s"
 	"github.com/110y/bootes/internal/k8s/store"
@@ -17,9 +15,6 @@ import (
 )
 
 func Run(ctx context.Context) int {
-	ctx, stop := signal.NotifyContext(ctx, unix.SIGTERM, unix.SIGINT)
-	defer stop()
-
 	l, err := newLogger()
 	if err != nil {
 		_, ferr := fmt.Fprintf(os.Stderr, "failed to create logger: %s", err)

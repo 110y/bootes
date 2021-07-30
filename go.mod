@@ -19,7 +19,6 @@ require (
 	go.opentelemetry.io/otel/exporters/trace/jaeger v0.16.0
 	go.opentelemetry.io/otel/sdk v0.16.0
 	go.uber.org/zap v1.17.0
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
 	k8s.io/api v0.21.1
