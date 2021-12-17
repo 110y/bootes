@@ -10,7 +10,7 @@ jobs:
   lint:
     runs-on: ubuntu-20.04
     container:
-      image: golang:1.16.0-buster
+      image: golang:1.17.5-buster
 
     steps:
       - uses: actions/checkout@v2
@@ -36,7 +36,7 @@ jobs:
   test:
     runs-on: ubuntu-20.04
     container:
-      image: golang:1.16.0-buster
+      image: golang:1.17.5-buster
     steps:
       - uses: actions/checkout@v2
 
@@ -58,7 +58,7 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     container:
-      image: golang:1.16.0-buster
+      image: golang:1.17.5-buster
 
     steps:
       - uses: actions/checkout@v2
